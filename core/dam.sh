@@ -788,7 +788,7 @@ _dam_daily() {
     search|find|3) _dam_search "$@" ;;
     clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
     edit) "${EDITOR:-nano}" "$DAM_HOME/daily.db" ;;
-    help) _dam_help_daily ;;
+    help) if _dam_tty; then _dam_daily_menu; else _dam_help_daily; fi ;;
     *) echo "Usage: dam daily [choose|add|remove|up|down|move|run|search|clear|edit]" ;;
   esac
 }
@@ -801,7 +801,7 @@ _dam_help_table() {
   for row in "$@"; do
     cmd="${row%%|*}"
     desc="${row#*|}"
-    printf "%s%2s%s  %s%-30s%s %s\n" "$_dam_c_orange" "$n" "$_dam_c_reset" "$_dam_c_red2" "$cmd" "$_dam_c_reset" "$desc"
+    printf "%s%2s)%s %s%-30s%s %s\n" "$_dam_c_orange" "$n" "$_dam_c_reset" "$_dam_c_red2" "$cmd" "$_dam_c_reset" "$desc"
     n=$((n + 1))
   done
 }
@@ -866,7 +866,7 @@ _dam_help() {
         "dam search route|find route aliases" "projectdoctor|inspect project" "sup|start Sail" \
         "nrd|start Vite dev server" "qa|run quality pipeline"
       ;;
-    daily) _dam_help_daily ;;
+    daily) if _dam_tty; then _dam_daily_menu; else _dam_help_daily; fi ;;
     add|custom|change) _dam_help_add ;;
     alias) _dam_help_alias "${1:-}" ;;
     laravel)
