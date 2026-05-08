@@ -75,18 +75,29 @@ dam_install_recommended_daily_preview() {
   echo "${DAM_RED}${DAM_BOLD}Recommended Daily Favorites that will be merged:${DAM_RESET}"
   echo "${DAM_GRAY}Your custom Daily Favorites will NOT be deleted.${DAM_RESET}"
   echo
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "projectdoctor" "Check current Laravel project"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "myroutes"      "Show Laravel routes"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "sup"           "Start Sail"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "nrd"           "Start frontend dev server"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "pint"          "Format PHP code"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "pest"          "Run tests"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "rcheck"        "Preview Rector changes"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "stan"          "Static analysis"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "qa"            "Full quality pipeline"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gs"            "Git status"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gcam"          "Add all and commit with message"
-  printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gp"            "Push branch"
+
+  local preset_file="$ROOT_DIR/presets/recommended-daily.tsv"
+  if [ -f "$preset_file" ]; then
+    local alias_name alias_note
+    while IFS=$'\t' read -r alias_name alias_note; do
+      case "$alias_name" in ""|\#*) continue ;; esac
+      printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "$alias_name" "$alias_note"
+    done < "$preset_file"
+  else
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "projectdoctor" "Inspect current Laravel/PHP project"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "myroutes" "Show Laravel routes"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "sup" "Start Sail detached"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "nrd" "Start frontend dev server"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "pint" "Format PHP code"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "pest" "Run tests"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "rcheck" "Preview Rector changes"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "stan" "Static analysis"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "qa" "Full quality pipeline"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gs" "Git status"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gcam" "Add all and commit with message"
+    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gp" "Push branch"
+  fi
+
   echo
   echo "${DAM_GRAY}You can edit later with:${DAM_RESET}"
   echo "  dam daily choose"
@@ -153,6 +164,10 @@ if [ -f "$CONFIG_DIR/dam.sh" ]; then
 fi
 
 cp "$ROOT_DIR/core/dam.sh" "$CONFIG_DIR/dam.sh"
+mkdir -p "$CONFIG_DIR/presets"
+if [ -f "$ROOT_DIR/presets/recommended-daily.tsv" ]; then
+  cp "$ROOT_DIR/presets/recommended-daily.tsv" "$CONFIG_DIR/presets/recommended-daily.tsv"
+fi
 touch "$CONFIG_DIR/commands.sh" "$CONFIG_DIR/commands.db" "$CONFIG_DIR/custom-aliases.sh" "$CONFIG_DIR/daily.db"
 
 add_source_block() {

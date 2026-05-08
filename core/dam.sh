@@ -369,7 +369,26 @@ _dam_daily_run() {
 }
 
 _dam_daily_recommended_names() {
-  printf '%s\n' projectdoctor myroutes sup nrd pint pest rcheck stan qa gs gcam gp
+  local file="$DAM_HOME/presets/recommended-daily.tsv"
+  if [ -f "$file" ]; then
+    awk -F '\t' 'NF >= 1 && $1 !~ /^#/ && $1 != "" {print $1}' "$file"
+  else
+    printf '%s\n' projectdoctor myroutes sup nrd pint pest rcheck stan qa gs gcam gp
+  fi
+}
+
+_dam_daily_recommended_rows() {
+  local file="$DAM_HOME/presets/recommended-daily.tsv"
+  if [ -f "$file" ]; then
+    awk -F '\t' 'NF >= 1 && $1 !~ /^#/ && $1 != "" {print}' "$file"
+  else
+    local name
+    while IFS= read -r name; do
+      printf "%s\t%s\n" "$name" "$(_dam_note_for_alias "$name")"
+    done <<EOF_DAM_REC_ROWS
+$(_dam_daily_recommended_names)
+EOF_DAM_REC_ROWS
+  fi
 }
 
 _dam_daily_install() {
@@ -475,11 +494,12 @@ _dam_daily_menu() {
 _dam_daily_recommended() {
   _dam_repair_quiet
   _dam_panel "Recommended Daily Favorites" "A practical starter list for Laravel/PHP fullstack work."
-  local name
-  while IFS= read -r name; do
-    printf "%s%-18s%s %s\n" "$_dam_c_red2" "$name" "$_dam_c_reset" "$(_dam_note_for_alias "$name")"
+  local name note
+  while IFS=$'\t' read -r name note; do
+    [ -n "$name" ] || continue
+    printf "%s%-18s%s %s\n" "$_dam_c_red2" "$name" "$_dam_c_reset" "${note:-$(_dam_note_for_alias "$name")}"
   done <<EOF_DAM_REC
-$(_dam_daily_recommended_names)
+$(_dam_daily_recommended_rows)
 EOF_DAM_REC
   echo
   echo "Install/merge: dam daily install"

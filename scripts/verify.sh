@@ -36,6 +36,8 @@ run_behavior_test() {
 
     dam daily install >/tmp/dam-verify-daily.out
     [ "$(wc -l < "$DAM_HOME/daily.db")" -ge 10 ]
+    dam daily recommended >/tmp/dam-verify-recommended.out
+    grep -q "projectdoctor" /tmp/dam-verify-recommended.out
     dam daily add myroutes >/dev/null
     grep -q "^myroutes|" "$DAM_HOME/daily.db"
     dam daily remove myroutes >/dev/null
@@ -54,6 +56,7 @@ custom_home="$tmp_home/custom-dam"
 HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt >/tmp/dam-verify-install.out
 grep -qF "$custom_home/dam.sh" "$tmp_home/.bashrc"
 [ -f "$custom_home/dam.sh" ]
+[ -f "$custom_home/presets/recommended-daily.tsv" ]
 [ "$(wc -l < "$custom_home/commands.db")" -ge 90 ]
 
 echo 'Shell syntax and behavior OK.'

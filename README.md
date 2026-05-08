@@ -81,7 +81,7 @@ dam daily run             # run Daily aliases in order
 dam daily reset           # replace Daily with recommended defaults
 ```
 
-Recommended Daily Favorites:
+Recommended Daily Favorites are defined in [`presets/recommended-daily.tsv`](presets/recommended-daily.tsv):
 
 ```text
 projectdoctor  myroutes  sup  nrd  pint  pest  rcheck  stan  qa  gs  gcam  gp
