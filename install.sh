@@ -4,6 +4,7 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${DAM_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/dev-alias-manager}"
 MODE="--auto"
+MODE_EXPLICIT=0
 RUN_WIZARD=1
 CLEAN=0
 PROMPT_RELOAD=1
@@ -82,7 +83,7 @@ dam_prompt_yes_no() {
 
 for arg in "$@"; do
   case "$arg" in
-    --zsh|--bash|--both|--auto) MODE="$arg" ;;
+    --zsh|--bash|--both|--auto) MODE="$arg"; MODE_EXPLICIT=1 ;;
     --no-wizard) RUN_WIZARD=0 ;;
     --no-clean) CLEAN=0 ;;
     --clean) CLEAN=1 ;;
@@ -95,12 +96,12 @@ Default behavior:
   - installs or updates DAM
   - asks whether to delete old DAM data when an install already exists
   - opens wizard
-  - detects your current shell and writes the source block there
+  - asks which shell config to update
   - lets you choose Daily Favorites from installed aliases
   - asks whether to reload shell now
 
 Options:
-  --auto              detect zsh/bash from $SHELL and current process
+  --auto              detect zsh/bash from $SHELL and current process without asking
   --zsh               configure ~/.zshrc
   --bash              configure ~/.bashrc
   --both              configure ~/.zshrc and ~/.bashrc
@@ -203,9 +204,42 @@ detect_shell_mode() {
   fi
 }
 
-if [ "$MODE" = "--auto" ]; then
-  MODE="$(detect_shell_mode)"
-fi
+choose_shell_mode() {
+  local detected choice
+  detected="$(detect_shell_mode)"
+
+  if [ "$MODE_EXPLICIT" = "1" ]; then
+    [ "$MODE" = "--auto" ] && MODE="$detected"
+    return 0
+  fi
+
+  if [ ! -t 0 ]; then
+    MODE="$detected"
+    return 0
+  fi
+
+  dam_install_panel "Choose shell config" "Select where DAM should add its source block. Detected: ${detected#--}."
+  echo "${DAM_ORANGE}1)${DAM_RESET} Auto detected (${detected#--})"
+  echo "${DAM_ORANGE}2)${DAM_RESET} Zsh only (~/.zshrc)"
+  echo "${DAM_ORANGE}3)${DAM_RESET} Bash only (~/.bashrc)"
+  echo "${DAM_ORANGE}4)${DAM_RESET} Both zsh and bash"
+  echo "${DAM_ORANGE}0)${DAM_RESET} Cancel install"
+
+  while true; do
+    printf "${DAM_RED}${DAM_BOLD}Choose shell target ›${DAM_RESET} "
+    read -r choice
+    case "$choice" in
+      ""|1|auto|Auto) MODE="$detected"; break ;;
+      2|zsh|Zsh|ZSH) MODE="--zsh"; break ;;
+      3|bash|Bash|BASH) MODE="--bash"; break ;;
+      4|both|Both|BOTH) MODE="--both"; break ;;
+      0|q|quit|exit) echo "Install cancelled."; exit 0 ;;
+      *) dam_install_warn "Choose 1, 2, 3, 4, or 0." ;;
+    esac
+  done
+}
+
+choose_shell_mode
 
 case "$MODE" in
   --zsh) add_source_block "$HOME/.zshrc" "source" ;;

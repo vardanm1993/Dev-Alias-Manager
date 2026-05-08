@@ -29,7 +29,15 @@ chmod +x install.sh uninstall.sh
 ./install.sh
 ```
 
-The installer detects your shell from `$SHELL` and writes the source block to `~/.zshrc` or `~/.bashrc`.
+The installer asks where to add the DAM source block:
+
+```text
+1) Auto detected
+2) Zsh only
+3) Bash only
+4) Both zsh and bash
+0) Cancel install
+```
 
 Before setup installs packs, DAM checks whether any planned alias name already exists on your computer. If a selected alias conflicts, setup asks what to do:
 
@@ -39,7 +47,7 @@ r = replace/shadow the existing command
 n = rename the DAM alias
 ```
 
-You can force a target shell:
+For automation, you can still force a target shell:
 
 ```bash
 ./install.sh --zsh

@@ -5,9 +5,17 @@ chmod +x install.sh
 ./install.sh
 ```
 
-The installer detects zsh or bash automatically and writes the DAM source block to the matching shell config.
+The installer asks which shell config to update:
 
-Force a shell target when needed:
+```text
+1) Auto detected
+2) Zsh only
+3) Bash only
+4) Both zsh and bash
+0) Cancel install
+```
+
+For scripts, force a shell target when needed:
 
 ```bash
 ./install.sh --zsh
