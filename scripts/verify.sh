@@ -69,4 +69,14 @@ grep -qF "$custom_home/dam.sh" "$tmp_home/.bashrc"
 [ -f "$custom_home/dam.sh" ]
 [ "$(wc -l < "$custom_home/commands.db")" -ge 90 ]
 
+printf "custom|Keep me\n" > "$custom_home/daily.db"
+HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt </dev/null >/tmp/dam-verify-reinstall-keep.out
+grep -q "^custom|" "$custom_home/daily.db"
+
+printf "n\n" | HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt >/tmp/dam-verify-reinstall-interactive-keep.out
+grep -q "^custom|" "$custom_home/daily.db"
+
+printf "y\n" | HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt >/tmp/dam-verify-reinstall-delete.out
+! grep -q "^custom|" "$custom_home/daily.db"
+
 echo 'Shell syntax and behavior OK.'

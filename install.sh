@@ -48,7 +48,7 @@ dam_install_warn() {
 }
 
 dam_prompt_yes_no() {
-  local prompt_label="$1"
+  local prompt_label="$1" default_answer="${2:-yes}"
   local answer
 
   while true; do
@@ -56,7 +56,11 @@ dam_prompt_yes_no() {
     read -r answer
 
     case "$answer" in
-      ""|y|Y|yes|YES|Yes)
+      "")
+        [ "$default_answer" = "yes" ] && return 0
+        return 1
+        ;;
+      y|Y|yes|YES|Yes)
         return 0
         ;;
       n|N|no|NO|No)
@@ -64,8 +68,12 @@ dam_prompt_yes_no() {
         ;;
       *)
         echo
-        dam_install_warn "Please answer with Enter/y/yes or n/no."
-        echo "${DAM_GRAY}Example: press Enter for Yes, or type n for No.${DAM_RESET}"
+        dam_install_warn "Please answer with y/yes or n/no."
+        if [ "$default_answer" = "yes" ]; then
+          echo "${DAM_GRAY}Example: press Enter for Yes, or type n for No.${DAM_RESET}"
+        else
+          echo "${DAM_GRAY}Example: type y for Yes, or press Enter for No.${DAM_RESET}"
+        fi
         echo
         ;;
     esac
@@ -85,7 +93,7 @@ Usage: ./install.sh [--auto|--zsh|--bash|--both] [--clean] [--no-wizard] [--no-r
 
 Default behavior:
   - installs or updates DAM
-  - keeps existing aliases, Daily Favorites, and config
+  - asks whether to delete old DAM data when an install already exists
   - opens wizard
   - detects your current shell and writes the source block there
   - lets you choose Daily Favorites from installed aliases
@@ -97,7 +105,7 @@ Options:
   --bash              configure ~/.bashrc
   --both              configure ~/.zshrc and ~/.bashrc
   --clean             remove existing DAM config before install
-  --no-clean          keep existing DAM files
+  --no-clean          keep existing DAM files without asking
   --no-wizard         install without opening wizard
   --no-reload-prompt  do not ask to reload shell
 EOF
@@ -126,6 +134,26 @@ clean_dam() {
 }
 
 if [ "$CLEAN" = "1" ]; then clean_dam; fi
+
+prompt_existing_install_cleanup() {
+  [ "$CLEAN" = "0" ] || return 0
+  [ -d "$CONFIG_DIR" ] || return 0
+  [ -e "$CONFIG_DIR/dam.sh" ] || [ -e "$CONFIG_DIR/commands.db" ] || [ -e "$CONFIG_DIR/daily.db" ] || return 0
+
+  if [ -t 0 ]; then
+    dam_install_panel "Existing DAM install found" "Delete old DAM aliases, Daily Favorites, and config before installing this version? Press n to keep/update."
+    if dam_prompt_yes_no "Delete old DAM data? [y/N]:" no; then
+      clean_dam
+      dam_install_ok "Old DAM install deleted. Continuing with fresh install."
+    else
+      dam_install_warn "Keeping old DAM data and updating program files."
+    fi
+  else
+    dam_install_warn "Existing DAM install found. Non-interactive install keeps old aliases, Daily Favorites, and config."
+  fi
+}
+
+prompt_existing_install_cleanup
 
 mkdir -p "$CONFIG_DIR"
 

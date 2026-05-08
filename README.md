@@ -187,6 +187,8 @@ Run the installer again. Existing aliases, Daily Favorites, and config are kept.
 ./install.sh
 ```
 
+If DAM is already installed, the installer asks whether to delete old DAM data first. Press Enter or `n` to keep/update, or type `y` for a fresh install.
+
 Fresh reinstall:
 
 ```bash
