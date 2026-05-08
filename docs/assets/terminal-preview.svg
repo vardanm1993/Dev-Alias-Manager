@@ -1,36 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720" role="img" aria-labelledby="title desc">
-  <title id="title">Dev Alias Manager terminal preview</title>
-  <desc id="desc">A terminal screenshot-style preview showing Dev Alias Manager alias and Daily Favorites tables.</desc>
-  <rect width="1180" height="720" rx="18" fill="#151515"/>
-  <rect x="24" y="24" width="1132" height="672" rx="14" fill="#0d0f12" stroke="#3a3a3a"/>
-  <circle cx="56" cy="54" r="8" fill="#ff5f57"/>
-  <circle cx="82" cy="54" r="8" fill="#ffbd2e"/>
-  <circle cx="108" cy="54" r="8" fill="#28c840"/>
-  <text x="138" y="60" fill="#f05340" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">Dev Alias Manager</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="860" viewBox="0 0 1220 860" role="img" aria-labelledby="title desc">
+  <title id="title">Dev Alias Manager Daily Favorites preview</title>
+  <desc id="desc">Terminal preview showing the Daily Favorites table, numbered menu actions, and Choose action prompt.</desc>
+  <rect width="1220" height="860" rx="22" fill="#171717"/>
+  <rect x="28" y="28" width="1164" height="804" rx="18" fill="#0d0f12" stroke="#3f3f46" stroke-width="2"/>
 
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
-    <text x="52" y="106" fill="#f05340">╭────────────────────────────────────────────────────────────╮</text>
-    <text x="52" y="132" fill="#f472b6">│ Installed Aliases                                          │</text>
-    <text x="52" y="158" fill="#a1a1aa">│ Mode: sail. Search: dam search WORD. Explain: dam help al │</text>
-    <text x="52" y="184" fill="#f05340">╰────────────────────────────────────────────────────────────╯</text>
+  <circle cx="64" cy="60" r="8" fill="#ff5f57"/>
+  <circle cx="90" cy="60" r="8" fill="#ffbd2e"/>
+  <circle cx="116" cy="60" r="8" fill="#28c840"/>
+  <text x="150" y="67" fill="#fb7185" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" font-weight="700">Dev Alias Manager</text>
+  <text x="990" y="67" fill="#71717a" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15">Laravel / Sail CLI</text>
 
-    <text x="52" y="226" fill="#71717a">┌──────┬────────────────────┬──────────────┬───────────┬────────────────────────────────┬──────────────────────────────┐</text>
-    <text x="52" y="252" fill="#fb7185">│ Icon │ Alias              │ Pack         │ Kind      │ Command                        │ Subtitle                     │</text>
-    <text x="52" y="278" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
-    <text x="52" y="304" fill="#fb7185">│ ◆    │ laravel aliases    │              │           │                                │                              │</text>
-    <text x="52" y="330" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
-    <text x="52" y="356" fill="#f4f4f5">│ ▸    │ art                │ <tspan fill="#fb7185">laravel</tspan>      │ <tspan fill="#fb923c">artisan</tspan>   │                                │ Run any artisan command      │</text>
-    <text x="52" y="382" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
-    <text x="52" y="408" fill="#f4f4f5">│ ▸    │ myroutes           │ <tspan fill="#fb7185">laravel</tspan>      │ <tspan fill="#fb923c">artisan</tspan>   │ route:list                     │ Show Laravel routes          │</text>
-    <text x="52" y="434" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
-    <text x="52" y="460" fill="#f4f4f5">│ ▸    │ sup                │ <tspan fill="#fb923c">sail</tspan>         │ <tspan fill="#fb923c">raw</tspan>       │ ./vendor/bin/sail up -d        │ Start Sail detached          │</text>
-    <text x="52" y="486" fill="#71717a">└──────┴────────────────────┴──────────────┴───────────┴────────────────────────────────┴──────────────────────────────┘</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19">
+    <text x="58" y="120" fill="#f05340">╭────────────────────────────────────────────────────────────╮</text>
+    <text x="58" y="149" fill="#f472b6">│ Daily Favorites                                            │</text>
+    <text x="58" y="178" fill="#a1a1aa">│ Your short list for commands you use or forget often.      │</text>
+    <text x="58" y="207" fill="#f05340">╰────────────────────────────────────────────────────────────╯</text>
 
-    <text x="52" y="536" fill="#f05340">╭────────────────────────────────────────────────────────────╮</text>
-    <text x="52" y="562" fill="#f472b6">│ Daily Favorites                                            │</text>
-    <text x="52" y="588" fill="#f05340">╰────────────────────────────────────────────────────────────╯</text>
-    <text x="52" y="626" fill="#71717a">┌──────┬────────────────────┬──────────────┬────────────────────────────────────────────┐</text>
-    <text x="52" y="652" fill="#fb7185">│ No   │ Alias              │ Pack         │ Subtitle                                   │</text>
-    <text x="52" y="678" fill="#f4f4f5">│ <tspan fill="#fb923c">1</tspan>    │ sup                │ <tspan fill="#fb923c">sail</tspan>         │ Start Sail detached                        │</text>
+    <text x="58" y="257" fill="#71717a">┌──────┬────────────────────┬──────────────┬────────────────────────────────────────────┐</text>
+    <text x="58" y="286" fill="#fb7185">│ No   │ Alias              │ Pack         │ Subtitle                                   │</text>
+    <text x="58" y="315" fill="#71717a">├──────┼────────────────────┼──────────────┼────────────────────────────────────────────┤</text>
+    <text x="58" y="344" fill="#f4f4f5">│ <tspan fill="#fb923c">1</tspan>    │ <tspan fill="#ffffff">sup</tspan>                │ <tspan fill="#fb923c">sail</tspan>         │ Start Sail detached                        │</text>
+    <text x="58" y="373" fill="#71717a">├──────┼────────────────────┼──────────────┼────────────────────────────────────────────┤</text>
+    <text x="58" y="402" fill="#f4f4f5">│ <tspan fill="#fb923c">2</tspan>    │ <tspan fill="#ffffff">supb</tspan>               │ <tspan fill="#fb923c">sail</tspan>         │ Start Sail with build                      │</text>
+    <text x="58" y="431" fill="#71717a">├──────┼────────────────────┼──────────────┼────────────────────────────────────────────┤</text>
+    <text x="58" y="460" fill="#f4f4f5">│ <tspan fill="#fb923c">3</tspan>    │ <tspan fill="#ffffff">myroutes</tspan>           │ <tspan fill="#fb7185">laravel</tspan>      │ Show Laravel routes                        │</text>
+    <text x="58" y="489" fill="#71717a">└──────┴────────────────────┴──────────────┴────────────────────────────────────────────┘</text>
+
+    <text x="58" y="555" fill="#fb7185">1</text>
+    <text x="78" y="555" fill="#f4f4f5">Browse &amp; add</text>
+    <text x="236" y="555" fill="#fb923c">2</text>
+    <text x="256" y="555" fill="#f4f4f5">Quick add</text>
+    <text x="382" y="555" fill="#38bdf8">3</text>
+    <text x="402" y="555" fill="#f4f4f5">Search &amp; add</text>
+    <text x="568" y="555" fill="#22c55e">4</text>
+    <text x="588" y="555" fill="#f4f4f5">Run list</text>
+    <text x="705" y="555" fill="#facc15">5</text>
+    <text x="725" y="555" fill="#f4f4f5">Move up</text>
+
+    <text x="58" y="592" fill="#f472b6">6</text>
+    <text x="78" y="592" fill="#f4f4f5">Move down</text>
+    <text x="225" y="592" fill="#fb7185">7</text>
+    <text x="245" y="592" fill="#f4f4f5">Set position</text>
+    <text x="408" y="592" fill="#facc15">8</text>
+    <text x="428" y="592" fill="#f4f4f5">Clear list</text>
+    <text x="560" y="592" fill="#a1a1aa">0</text>
+    <text x="580" y="592" fill="#f4f4f5">Exit</text>
+
+    <text x="58" y="662" fill="#fb7185">Choose action</text>
+    <text x="206" y="662" fill="#fb923c">›</text>
+    <text x="236" y="662" fill="#ffffff">3</text>
+    <rect x="58" y="690" width="760" height="80" rx="10" fill="#121417" stroke="#27272a"/>
+    <text x="82" y="724" fill="#a1a1aa">Search:</text>
+    <text x="178" y="724" fill="#ffffff">sail</text>
+    <text x="82" y="756" fill="#a1a1aa">Aliases to add from results:</text>
+    <text x="414" y="756" fill="#ffffff">sup supb sdown</text>
   </g>
 </svg>
