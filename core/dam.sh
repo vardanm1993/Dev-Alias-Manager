@@ -681,6 +681,16 @@ _dam_daily_choose_text() {
   _dam_daily_add_line "$line"
 }
 
+_dam_daily_list_and_add() {
+  _dam_list
+  echo
+  echo "Add aliases from this list to Daily. Use spaces for multiple aliases, for example: sup art myroutes"
+  printf "Aliases to add: "
+  local line
+  read -r line
+  _dam_daily_add_line "$line"
+}
+
 _dam_daily_choose_dialog() {
   local backend="$1"
   local -a opts
@@ -734,20 +744,21 @@ _dam_daily_menu() {
   while true; do
     _dam_daily_show
     echo
-    printf "%s1%s list aliases   %s2%s add one   %s3%s search   %s4%s run   %s5%s up   %s6%s down   %s7%s move   %s8%s clear   %s0%s exit\n" \
+    printf "%s1%s Browse & add   %s2%s Quick add   %s3%s Search & add   %s4%s Run list   %s5%s Move up   %s6%s Move down   %s7%s Set position   %s8%s Clear list   %s0%s Exit\n" \
       "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset" "$_dam_c_blue" "$_dam_c_reset" "$_dam_c_green" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_pink" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_muted" "$_dam_c_reset"
     printf "Choose: "
     local choice query names name position
     read -r choice
     case "$choice" in
       ""|0|q|quit|exit) break ;;
-      1|list|aliases|choose) _dam_daily_choose ;;
-      2|add) printf "Aliases (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
-      3|search) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Add aliases from results (space separated, empty to skip): "; read -r names; _dam_daily_add_line "$names" ;;
+      1|browse|list|aliases) _dam_daily_list_and_add ;;
+      choose|checkbox|select) _dam_daily_choose ;;
+      2|quick|add) printf "Aliases to add (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
+      3|search|find) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Aliases to add from results (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
       4|run) _dam_daily_run ;;
       5|up) printf "Move up alias or row: "; read -r name; _dam_daily_up "$name" ;;
       6|down) printf "Move down alias or row: "; read -r name; _dam_daily_down "$name" ;;
-      7|move) printf "Alias or row: "; read -r name; printf "New position: "; read -r position; _dam_daily_move "$name" "$position" ;;
+      7|move|position) printf "Alias or row: "; read -r name; printf "New position: "; read -r position; _dam_daily_move "$name" "$position" ;;
       8|clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
       *) echo "Unknown choice." ;;
     esac
@@ -763,6 +774,7 @@ _dam_daily() {
   case "$action" in
     show|list|"") if _dam_tty; then _dam_daily_menu; else _dam_daily_show; fi ;;
     table|compact|print) _dam_daily_show ;;
+    browse|aliases) _dam_daily_list_and_add ;;
     choose|select|1) _dam_daily_choose ;;
     add) _dam_daily_add "$@" ;;
     remove|rm|delete) _dam_daily_remove "$@" ;;
