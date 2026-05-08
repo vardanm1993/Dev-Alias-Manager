@@ -69,10 +69,13 @@ Daily Favorites are only the aliases you choose. DAM does not install a default 
 
 ```bash
 dam daily                 # open Daily menu
-dam daily choose          # choose many aliases with checkboxes
+dam daily choose          # list aliases and choose many with checkboxes
 dam daily search route    # search before adding
 dam daily add myroutes    # add one alias
 dam daily remove myroutes # remove one alias
+dam daily up myroutes     # move one row up
+dam daily down 2          # move row 2 down
+dam daily move sup 1      # move alias to position 1
 dam daily run             # run Daily aliases in order
 dam daily clear           # empty the list
 ```

@@ -38,6 +38,12 @@ run_behavior_test() {
     grep -q "^myroutes|" "$DAM_HOME/daily.db"
     dam daily add sup >/dev/null
     grep -q "^sup|" "$DAM_HOME/daily.db"
+    dam daily move sup 1 >/tmp/dam-verify-daily-move.out
+    [ "$(_head="$(sed -n 1p "$DAM_HOME/daily.db")"; printf "%s" "${_head%%|*}")" = "sup" ]
+    dam daily down 1 >/tmp/dam-verify-daily-down.out
+    [ "$(_head="$(sed -n 2p "$DAM_HOME/daily.db")"; printf "%s" "${_head%%|*}")" = "sup" ]
+    dam daily up sup >/tmp/dam-verify-daily-up.out
+    [ "$(_head="$(sed -n 1p "$DAM_HOME/daily.db")"; printf "%s" "${_head%%|*}")" = "sup" ]
     dam daily remove myroutes >/dev/null
     ! grep -q "^myroutes|" "$DAM_HOME/daily.db"
   '

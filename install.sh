@@ -219,12 +219,12 @@ fi
 reload_shell_prompt() {
   [ "$PROMPT_RELOAD" = "1" ] || return 0
 
-  dam_install_action "🔄 Reload shell now? [Y/n]" "Required for this current terminal. This makes dam, dam daily, and aliases work immediately. Press Enter for Yes."
+  dam_install_action "Source/reload shell now? [Y/n]" "Asked after setup closes so this terminal can use dam, Daily Favorites, and aliases immediately. Press Enter for Yes."
 
   if [ -t 0 ]; then
     if dam_prompt_yes_no "Choose [Y/n]:"; then
       touch "$CONFIG_DIR/open-daily-after-reload"
-      echo "${DAM_GREEN}Reloading shell...${DAM_RESET}"
+      echo "${DAM_GREEN}Sourcing shell config by starting a fresh login shell...${DAM_RESET}"
       exec "$SHELL" -l
     else
       echo
