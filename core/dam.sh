@@ -741,13 +741,16 @@ _dam_daily_choose() {
 }
 
 _dam_daily_menu() {
+  case "$-" in *x*) set +x ;; esac
+  local choice query names name position
+
   while true; do
+    choice=""; query=""; names=""; name=""; position=""
     _dam_daily_show
     echo
     printf "%s1%s Browse & add   %s2%s Quick add   %s3%s Search & add   %s4%s Run list   %s5%s Move up   %s6%s Move down   %s7%s Set position   %s8%s Clear list   %s0%s Exit\n" \
       "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset" "$_dam_c_blue" "$_dam_c_reset" "$_dam_c_green" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_pink" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_muted" "$_dam_c_reset"
-    printf "Choose: "
-    local choice query names name position
+    printf "%sChoose action%s %s›%s " "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset"
     read -r choice
     case "$choice" in
       ""|0|q|quit|exit) break ;;
