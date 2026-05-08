@@ -1229,6 +1229,41 @@ _dam_add_interactive() {
   case "$add_daily" in y|Y|yes|YES) _dam_daily_add "$name" "$description" ;; esac
 }
 
+_dam_main_menu() {
+  case "$-" in *x*) set +x ;; esac
+  local choice query category pack name
+
+  while true; do
+    choice=""; query=""; category=""; pack=""; name=""
+    _dam_panel "Dev Alias Manager" "Laravel/PHP fullstack alias control center."
+    printf "%s1%s Setup packs      %s2%s Show packs      %s3%s List aliases     %s4%s Search aliases\n" \
+      "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset" "$_dam_c_blue" "$_dam_c_reset" "$_dam_c_green" "$_dam_c_reset"
+    printf "%s5%s Daily Favorites %s6%s Add custom      %s7%s Check tools      %s8%s Config\n" \
+      "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_pink" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset"
+    printf "%s9%s Help            %s0%s Exit\n" "$_dam_c_muted" "$_dam_c_reset" "$_dam_c_muted" "$_dam_c_reset"
+    printf "%sChoose action%s %s›%s " "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset"
+    read -r choice
+
+    case "$choice" in
+      ""|0|q|quit|exit) break ;;
+      1|setup|wizard) dam_wizard ;;
+      2|packs|presets) _dam_packs; echo; printf "Install pack now? Type pack name or press Enter: "; read -r pack; [ -n "$pack" ] && _dam_preset "$pack" ;;
+      3|list|aliases) printf "Category name or Enter for all: "; read -r category; [ -n "$category" ] && _dam_category "$category" || _dam_list ;;
+      4|search|find) printf "Search: "; read -r query; [ -n "$query" ] && _dam_search "$query" ;;
+      5|daily) _dam_daily_menu ;;
+      6|add|custom|new) _dam_add_interactive ;;
+      7|check|doctor) _dam_check ;;
+      8|config) "${EDITOR:-nano}" "$DAM_HOME/config.sh" ;;
+      9|help) _dam_help ;;
+      *) _dam_warn "Unknown action. Choose 1-9 or 0." ;;
+    esac
+
+    echo
+    printf "Press Enter to continue..."
+    read -r _
+  done
+}
+
 dam() {
   case "$-" in
     *x*) DAM_HAD_XTRACE=1; set +x ;;
@@ -1236,10 +1271,11 @@ dam() {
   esac
 
   local _dam_had_xtrace="$DAM_HAD_XTRACE" _dam_status=0
-  local action="${1:-help}"
+  local action="${1:-menu}"
   shift 2>/dev/null || true
   case "$action" in
-    wizard|setup|menu) dam_wizard ;;
+    menu|home) if _dam_tty; then _dam_main_menu; else _dam_help; fi ;;
+    wizard|setup) dam_wizard ;;
     repair|install-fullstack) _dam_repair ;;
     preset|pack) _dam_preset "$@" ;;
     packs|presets) _dam_packs ;;

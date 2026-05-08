@@ -68,6 +68,7 @@ source ~/.bashrc
 Then start with:
 
 ```bash
+dam               # open interactive control center
 dam wizard        # checkbox install for alias packs
 dam list          # colorful table of installed aliases
 dam search sail   # search aliases by name, pack, command, or subtitle
