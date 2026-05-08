@@ -38,8 +38,9 @@ run_behavior_test() {
     dam search route >/tmp/dam-verify-search.out
     grep -q "myroutes" /tmp/dam-verify-search.out
 
-    dam daily add myroutes >/dev/null
+    dam daily add myroutes routes >/dev/null
     grep -q "^myroutes|" "$DAM_HOME/daily.db"
+    grep -q "^routes|" "$DAM_HOME/daily.db"
     dam daily add sup >/dev/null
     grep -q "^sup|" "$DAM_HOME/daily.db"
     dam daily move sup 1 >/tmp/dam-verify-daily-move.out

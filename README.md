@@ -14,7 +14,11 @@ DAM does not install Docker, PHP, Composer, Node, Laravel, Sail, or third-party 
 - Conflict checks before aliases are saved, with options to skip/delete the DAM alias, replace/shadow the existing command, or rename the DAM alias.
 - Alias packs with subtitles: Laravel, Sail, Docker, Frontend, PHP/Composer, Git, GitHub, Quality, Security, Linux, and Workflow.
 - Sail-aware commands: Laravel aliases use Sail automatically when `./vendor/bin/sail` exists.
-- Personal Daily Favorites: add one alias by name, search first, or choose many with checkboxes.
+- Personal Daily Favorites: add one or many aliases by name, search first, or choose many with checkboxes.
+
+## Preview
+
+![Dev Alias Manager CLI preview](docs/assets/terminal-preview.svg)
 
 ## Install
 
@@ -80,7 +84,7 @@ Daily Favorites are only the aliases you choose. DAM does not install a default 
 dam daily                 # open Daily menu
 dam daily choose          # list aliases and choose many with checkboxes
 dam daily search route    # search before adding
-dam daily add myroutes    # add one alias
+dam daily add sup art     # add one or many aliases
 dam daily remove myroutes # remove one alias
 dam daily up myroutes     # move one row up
 dam daily down 2          # move row 2 down

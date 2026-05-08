@@ -496,9 +496,9 @@ _dam_daily_contains() {
   grep -q "^${1}|" "$DAM_HOME/daily.db" 2>/dev/null
 }
 
-_dam_daily_add() {
+_dam_daily_add_one() {
   local name="${1:-}" note="${2:-}"
-  [ -n "$name" ] || { echo "Usage: dam daily add NAME ['NOTE']"; return 1; }
+  [ -n "$name" ] || { echo "Usage: dam daily add NAME [NAME ...]"; return 1; }
   _dam_validate_name "$name" || return 1
   if ! _dam_alias_exists "$name"; then
     _dam_err "Alias not found: $name"
@@ -510,6 +510,27 @@ _dam_daily_add() {
   mv "$DAM_HOME/daily.db.tmp" "$DAM_HOME/daily.db"
   printf "%s|%s\n" "$name" "$note" >> "$DAM_HOME/daily.db"
   _dam_ok "Added to Daily: $name"
+}
+
+_dam_daily_add() {
+  [ "$#" -gt 0 ] || { echo "Usage: dam daily add NAME [NAME ...]"; return 1; }
+  local name result=0
+  for name in "$@"; do
+    _dam_daily_add_one "$name" || result=1
+  done
+  return "$result"
+}
+
+_dam_daily_add_line() {
+  local line="${1:-}" name result=0
+  [ -n "$line" ] || return 0
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    _dam_daily_add_one "$name" || result=1
+  done <<EOF_DAM_DAILY_WORDS
+$(printf '%s\n' "$line" | tr '[:space:]' '\n')
+EOF_DAM_DAILY_WORDS
+  return "$result"
 }
 
 _dam_daily_remove() {
@@ -655,11 +676,9 @@ _dam_daily_choose_text() {
   echo
   echo "Type aliases to add to Daily, separated by spaces. Leave empty to exit."
   printf "Aliases: "
-  local line name
+  local line
   read -r line
-  for name in $line; do
-    _dam_daily_add "$name"
-  done
+  _dam_daily_add_line "$line"
 }
 
 _dam_daily_choose_dialog() {
@@ -718,13 +737,13 @@ _dam_daily_menu() {
     printf "%s1%s list aliases   %s2%s add one   %s3%s search   %s4%s run   %s5%s up   %s6%s down   %s7%s move   %s8%s clear   %s0%s exit\n" \
       "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset" "$_dam_c_blue" "$_dam_c_reset" "$_dam_c_green" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_pink" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_muted" "$_dam_c_reset"
     printf "Choose: "
-    local choice query name position
+    local choice query names name position
     read -r choice
     case "$choice" in
       ""|0|q|quit|exit) break ;;
       1|list|aliases|choose) _dam_daily_choose ;;
-      2|add) printf "Alias: "; read -r name; _dam_daily_add "$name" ;;
-      3|search) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Add alias from results (empty to skip): "; read -r name; [ -n "$name" ] && _dam_daily_add "$name" ;;
+      2|add) printf "Aliases (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
+      3|search) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Add aliases from results (space separated, empty to skip): "; read -r names; _dam_daily_add_line "$names" ;;
       4|run) _dam_daily_run ;;
       5|up) printf "Move up alias or row: "; read -r name; _dam_daily_up "$name" ;;
       6|down) printf "Move down alias or row: "; read -r name; _dam_daily_down "$name" ;;
@@ -784,7 +803,7 @@ _dam_help_daily() {
   _dam_help_table "Daily Favorites" "A small personal list for commands you use most." \
     "dam daily|open Daily menu" \
     "dam daily choose|list aliases with checkbox chooser" \
-    "dam daily add NAME|add one alias" \
+    "dam daily add NAME [NAME ...]|add one or many aliases" \
     "dam daily search WORD|search aliases before adding" \
     "dam daily remove NAME|remove one alias" \
     "dam daily up NAME_OR_ROW|move item one row up" \
@@ -1196,6 +1215,12 @@ _dam_add_interactive() {
 }
 
 dam() {
+  case "$-" in
+    *x*) DAM_HAD_XTRACE=1; set +x ;;
+    *) DAM_HAD_XTRACE=0 ;;
+  esac
+
+  local _dam_had_xtrace="$DAM_HAD_XTRACE" _dam_status=0
   local action="${1:-help}"
   shift 2>/dev/null || true
   case "$action" in
@@ -1231,6 +1256,10 @@ dam() {
       ;;
     *) _dam_help "$action" ;;
   esac
+
+  _dam_status="$?"
+  [ "$_dam_had_xtrace" = "1" ] && set -x
+  return "$_dam_status"
 }
 
 # shellcheck disable=SC1090

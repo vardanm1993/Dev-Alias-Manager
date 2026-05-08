@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720" role="img" aria-labelledby="title desc">
+  <title id="title">Dev Alias Manager terminal preview</title>
+  <desc id="desc">A terminal screenshot-style preview showing Dev Alias Manager alias and Daily Favorites tables.</desc>
+  <rect width="1180" height="720" rx="18" fill="#151515"/>
+  <rect x="24" y="24" width="1132" height="672" rx="14" fill="#0d0f12" stroke="#3a3a3a"/>
+  <circle cx="56" cy="54" r="8" fill="#ff5f57"/>
+  <circle cx="82" cy="54" r="8" fill="#ffbd2e"/>
+  <circle cx="108" cy="54" r="8" fill="#28c840"/>
+  <text x="138" y="60" fill="#f05340" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">Dev Alias Manager</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
+    <text x="52" y="106" fill="#f05340">╭────────────────────────────────────────────────────────────╮</text>
+    <text x="52" y="132" fill="#f472b6">│ Installed Aliases                                          │</text>
+    <text x="52" y="158" fill="#a1a1aa">│ Mode: sail. Search: dam search WORD. Explain: dam help al │</text>
+    <text x="52" y="184" fill="#f05340">╰────────────────────────────────────────────────────────────╯</text>
+
+    <text x="52" y="226" fill="#71717a">┌──────┬────────────────────┬──────────────┬───────────┬────────────────────────────────┬──────────────────────────────┐</text>
+    <text x="52" y="252" fill="#fb7185">│ Icon │ Alias              │ Pack         │ Kind      │ Command                        │ Subtitle                     │</text>
+    <text x="52" y="278" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
+    <text x="52" y="304" fill="#fb7185">│ ◆    │ laravel aliases    │              │           │                                │                              │</text>
+    <text x="52" y="330" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
+    <text x="52" y="356" fill="#f4f4f5">│ ▸    │ art                │ <tspan fill="#fb7185">laravel</tspan>      │ <tspan fill="#fb923c">artisan</tspan>   │                                │ Run any artisan command      │</text>
+    <text x="52" y="382" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
+    <text x="52" y="408" fill="#f4f4f5">│ ▸    │ myroutes           │ <tspan fill="#fb7185">laravel</tspan>      │ <tspan fill="#fb923c">artisan</tspan>   │ route:list                     │ Show Laravel routes          │</text>
+    <text x="52" y="434" fill="#71717a">├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤</text>
+    <text x="52" y="460" fill="#f4f4f5">│ ▸    │ sup                │ <tspan fill="#fb923c">sail</tspan>         │ <tspan fill="#fb923c">raw</tspan>       │ ./vendor/bin/sail up -d        │ Start Sail detached          │</text>
+    <text x="52" y="486" fill="#71717a">└──────┴────────────────────┴──────────────┴───────────┴────────────────────────────────┴──────────────────────────────┘</text>
+
+    <text x="52" y="536" fill="#f05340">╭────────────────────────────────────────────────────────────╮</text>
+    <text x="52" y="562" fill="#f472b6">│ Daily Favorites                                            │</text>
+    <text x="52" y="588" fill="#f05340">╰────────────────────────────────────────────────────────────╯</text>
+    <text x="52" y="626" fill="#71717a">┌──────┬────────────────────┬──────────────┬────────────────────────────────────────────┐</text>
+    <text x="52" y="652" fill="#fb7185">│ No   │ Alias              │ Pack         │ Subtitle                                   │</text>
+    <text x="52" y="678" fill="#f4f4f5">│ <tspan fill="#fb923c">1</tspan>    │ sup                │ <tspan fill="#fb923c">sail</tspan>         │ Start Sail detached                        │</text>
+  </g>
+</svg>
