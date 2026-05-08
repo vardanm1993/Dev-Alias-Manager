@@ -1,21 +1,19 @@
 # Dev Alias Manager
 
-Dev Alias Manager is a Bash/Zsh alias manager for Laravel and PHP fullstack developers.
+Dev Alias Manager is a Laravel/PHP fullstack alias manager for Bash and Zsh.
 
-It provides a polished command layer for everyday Laravel, Sail, Composer, npm/Vite, Docker, Git, GitHub CLI, Pest, Pint, Rector, PHPStan, security checks, and project workflows.
+It installs shell functions for Laravel, Sail, Composer, npm/Vite, Docker, Git, GitHub CLI, Pest, Pint, Rector, PHPStan, Linux helpers, security checks, and project workflow commands.
 
-DAM installs shell functions, aliases, help screens, and Daily Favorites only. It does not install Docker, PHP, Composer, Node, Laravel, Sail, or any third-party developer tool.
+DAM does not install Docker, PHP, Composer, Node, Laravel, Sail, or third-party developer tools. It only installs aliases, help screens, colorful terminal UI, and your personal Daily Favorites list.
 
-## Highlights
+## What You Get
 
-- Bash and Zsh support.
-- Safe installer that keeps existing aliases, Daily Favorites, and config by default.
-- Checkbox setup UI with `dialog` or `whiptail`, plus a text fallback.
-- Searchable alias registry.
-- Add, change, remove, list, and explain aliases.
-- Daily Favorites for commands you use often or forget.
-- Sail-aware execution for Laravel projects.
-- Focused alias packs for Laravel/PHP fullstack work.
+- Laravel-style setup prompts with checkbox screens when `dialog` or `whiptail` is available.
+- Automatic zsh/bash detection during install.
+- Colorful tables for alias lists, categories, searches, and Daily Favorites.
+- Alias packs with subtitles: Laravel, Sail, Docker, Frontend, PHP/Composer, Git, GitHub, Quality, Security, Linux, and Workflow.
+- Sail-aware commands: Laravel aliases use Sail automatically when `./vendor/bin/sail` exists.
+- Personal Daily Favorites: add one alias by name, search first, or choose many with checkboxes.
 
 ## Install
 
@@ -26,12 +24,14 @@ chmod +x install.sh uninstall.sh
 ./install.sh
 ```
 
-Reload your terminal or source your shell config:
+The installer detects your shell from `$SHELL` and writes the source block to `~/.zshrc` or `~/.bashrc`.
+
+You can force a target shell:
 
 ```bash
-source ~/.zshrc
-# or
-source ~/.bashrc
+./install.sh --zsh
+./install.sh --bash
+./install.sh --both
 ```
 
 For the best checkbox UI on Ubuntu/Debian:
@@ -40,51 +40,81 @@ For the best checkbox UI on Ubuntu/Debian:
 sudo apt install dialog
 ```
 
-If `dialog` is not available, DAM tries `whiptail`. If neither is available, DAM uses a simple text menu.
+If `dialog` is missing, DAM tries `whiptail`. If both are missing, it uses a plain text menu where you can choose aliases with space-separated input.
 
-## Update
+## First Run
 
-Run the installer again. Existing aliases, Daily Favorites, and config are kept.
+After install, reload the terminal when prompted. If you skipped reload:
 
 ```bash
-./install.sh
+source ~/.zshrc
+# or
+source ~/.bashrc
 ```
 
-For a fresh local reinstall:
+Then start with:
 
 ```bash
-./install.sh --clean
-```
-
-## Start Here
-
-```bash
-dam wizard          # choose alias packs with checkbox UI
-dam daily install   # install recommended Daily Favorites
-dam list            # show installed aliases
-dam search route    # search aliases
-dam help            # open the help center
-dam check           # inspect local tool availability
+dam wizard        # checkbox install for alias packs
+dam list          # colorful table of installed aliases
+dam search sail   # search aliases by name, pack, command, or subtitle
+dam daily choose  # checkbox picker for your Daily Favorites
+dam help          # help center
+dam check         # environment check
 ```
 
 ## Daily Favorites
 
-Daily Favorites are a small personal list for commands you use frequently or want to remember quickly.
+Daily Favorites are only the aliases you choose. DAM does not install a default Daily list.
 
 ```bash
 dam daily                 # open Daily menu
-dam daily install         # merge recommended favorites
-dam daily choose          # choose favorites with checkbox UI
+dam daily choose          # choose many aliases with checkboxes
+dam daily search route    # search before adding
 dam daily add myroutes    # add one alias
 dam daily remove myroutes # remove one alias
 dam daily run             # run Daily aliases in order
-dam daily reset           # replace Daily with recommended defaults
+dam daily clear           # empty the list
 ```
 
-Recommended Daily Favorites are defined in [`presets/recommended-daily.tsv`](presets/recommended-daily.tsv):
+The checkbox chooser shows every installed alias with its pack subtitle, for example Docker aliases together, Sail aliases together, Laravel aliases together, and so on.
 
-```text
-projectdoctor  myroutes  sup  nrd  pint  pest  rcheck  stan  qa  gs  gcam  gp
+## Alias Packs
+
+| Pack | What It Covers | Examples |
+| --- | --- | --- |
+| Laravel | Artisan, routes, database, queues, logs, generators, Sail install | `art`, `sailinstall`, `myroutes`, `dbmigrate`, `mkc`, `mkm`, `logs` |
+| Sail | Sail lifecycle and command passthrough | `sup`, `supb`, `sdown`, `slog`, `sshapp`, `sart`, `scomposer` |
+| Frontend | npm and Vite workflows | `ni`, `nrd`, `nrb`, `nrt`, `nrl`, `npreview` |
+| PHP / Composer | PHP and Composer workflows | `phpv`, `phpm`, `ci`, `cu`, `creq`, `caudit`, `coutdated` |
+| Quality | Pest, Pint, Rector, PHPStan | `pint`, `pest`, `rcheck`, `rfix`, `stan`, `qa` |
+| Docker | Docker Compose and cleanup | `dc`, `dcu`, `dcub`, `dcd`, `dcl`, `dps`, `dprune` |
+| Git | Daily Git commands | `gs`, `ga`, `gaa`, `gcm`, `gcam`, `gp`, `gpf` |
+| GitHub | GitHub CLI helpers | `ghpr`, `ghprv`, `ghprs`, `ghruns`, `ghwatch` |
+| Linux | Terminal and Ubuntu helpers | `cls`, `update`, `cleanup`, `ports`, `disk`, `mem` |
+| Security | Laravel project safety checks | `secenv`, `seckey`, `secaudit`, `secnpm`, `secperms` |
+| Workflow | Project start, stop, doctor, and quality flows | `doctor`, `start`, `stop`, `devflow`, `checkall` |
+
+Install a single pack later:
+
+```bash
+dam preset laravel
+dam preset sail
+dam preset docker
+dam preset fullstack
+```
+
+## Laravel And Sail Examples
+
+```bash
+sailinstall          # php artisan sail:install, or Sail artisan if Sail exists
+sup                  # ./vendor/bin/sail up -d
+sart migrate         # ./vendor/bin/sail artisan migrate
+scomposer install    # ./vendor/bin/sail composer install
+myroutes             # route:list
+dbfresh              # migrate:fresh --seed
+logs                 # tail storage/logs/laravel.log
+qa                   # Pint, Rector, PHPStan, Pest, and frontend checks
 ```
 
 ## Manage Aliases
@@ -102,40 +132,13 @@ Alias kinds:
 
 | Kind | Runs |
 | --- | --- |
-| `artisan` | `php artisan` or Sail artisan |
-| `npm` | `npm` or Sail npm |
-| `composer` | Composer or Sail composer |
-| `php` | PHP or Sail PHP |
-| `vendor` | Tools in `./vendor/bin` |
-| `system` | Normal shell commands |
-| `raw` | Advanced shell workflows |
-
-## Included Packs
-
-| Pack | Examples |
-| --- | --- |
-| Laravel | `myroutes`, `dbmigrate`, `dbfresh`, `qwork`, `logs`, `mkc`, `mkm`, `mkmig` |
-| Sail | `sup`, `supb`, `sdown`, `slog`, `sshapp`, `snrd`, `snrb` |
-| Quality | `pint`, `pinttest`, `pest`, `rcheck`, `rfix`, `stan`, `qa` |
-| Frontend | `ni`, `nrd`, `nrb`, `nrt`, `nrl`, `npreview` |
-| Git | `gs`, `ga`, `gaa`, `gcm`, `gcam`, `gp`, `gpf` |
-| Docker | `dc`, `dcu`, `dcub`, `dcd`, `dcl`, `dps`, `dprune` |
-| PHP / Composer | `phpv`, `ci`, `cu`, `creq`, `creqd`, `cda`, `cval`, `caudit` |
-| Security | `secenv`, `seckey`, `secaudit`, `secnpm`, `secperms` |
-
-## Laravel Examples
-
-```bash
-art make:controller UserController
-myroutes
-dbmigrate
-dbfresh
-qwork
-logs
-mkc UserController
-mkm User
-mkmig create_posts_table
-```
+| `artisan` | `php artisan` locally, or Sail artisan when Sail exists |
+| `npm` | `npm`, or Sail npm when Sail exists |
+| `composer` | Composer, or Sail composer when Sail exists |
+| `php` | PHP, or Sail PHP when Sail exists |
+| `vendor` | tools in `./vendor/bin` |
+| `system` | normal shell commands |
+| `raw` | advanced shell workflows |
 
 ## Configuration
 
@@ -160,13 +163,27 @@ Disable Sail auto-detection for one command:
 USE_SAIL=0 myroutes
 ```
 
+## Update Or Reinstall
+
+Run the installer again. Existing aliases, Daily Favorites, and config are kept.
+
+```bash
+./install.sh
+```
+
+Fresh reinstall:
+
+```bash
+./install.sh --clean
+```
+
 ## Verify
 
 ```bash
 make verify
 ```
 
-The verification script checks Bash syntax, Zsh syntax, alias execution behavior, Daily Favorites, and installer behavior with custom `DAM_HOME`.
+The verification script checks Bash syntax, Zsh syntax when available, alias behavior, Daily Favorites, and installer behavior with a custom `DAM_HOME`.
 
 ## Uninstall
 

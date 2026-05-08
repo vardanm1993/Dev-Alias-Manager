@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${DAM_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/dev-alias-manager}"
-MODE="--both"
+MODE="--auto"
 RUN_WIZARD=1
 CLEAN=0
 PROMPT_RELOAD=1
@@ -11,12 +11,15 @@ PROMPT_RELOAD=1
 if [ -t 1 ]; then
   DAM_RED="$(printf '\033[38;5;196m')"
   DAM_GREEN="$(printf '\033[38;5;46m')"
+  DAM_ORANGE="$(printf '\033[38;5;208m')"
+  DAM_PINK="$(printf '\033[38;5;203m')"
   DAM_YELLOW="$(printf '\033[38;5;220m')"
   DAM_GRAY="$(printf '\033[38;5;245m')"
+  DAM_DIM="$(printf '\033[38;5;238m')"
   DAM_BOLD="$(printf '\033[1m')"
   DAM_RESET="$(printf '\033[0m')"
 else
-  DAM_RED=""; DAM_GREEN=""; DAM_YELLOW=""; DAM_GRAY=""; DAM_BOLD=""; DAM_RESET=""
+  DAM_RED=""; DAM_GREEN=""; DAM_ORANGE=""; DAM_PINK=""; DAM_YELLOW=""; DAM_GRAY=""; DAM_DIM=""; DAM_BOLD=""; DAM_RESET=""
 fi
 
 dam_install_action() {
@@ -28,13 +31,12 @@ dam_install_action() {
   echo "${DAM_RED}${DAM_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${DAM_RESET}"
 }
 
-dam_install_recommended() {
+dam_install_panel() {
   echo
-  echo "${DAM_RED}${DAM_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${DAM_RESET}"
-  echo "${DAM_RED}${DAM_BOLD}Recommended${DAM_RESET}"
-  echo "${DAM_RED}${DAM_BOLD}$1${DAM_RESET}"
+  echo "${DAM_RED}${DAM_BOLD}╭────────────────────────────────────────────────────────────╮${DAM_RESET}"
+  printf "${DAM_RED}${DAM_BOLD}│${DAM_RESET} ${DAM_PINK}${DAM_BOLD}%-58.58s${DAM_RESET} ${DAM_RED}${DAM_BOLD}│${DAM_RESET}\n" "$1"
   [ -n "${2:-}" ] && echo "${DAM_GRAY}$2${DAM_RESET}"
-  echo "${DAM_RED}${DAM_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${DAM_RESET}"
+  echo "${DAM_RED}${DAM_BOLD}╰────────────────────────────────────────────────────────────╯${DAM_RESET}"
 }
 
 dam_install_ok() {
@@ -70,62 +72,30 @@ dam_prompt_yes_no() {
   done
 }
 
-dam_install_recommended_daily_preview() {
-  echo
-  echo "${DAM_RED}${DAM_BOLD}Recommended Daily Favorites that will be merged:${DAM_RESET}"
-  echo "${DAM_GRAY}Your custom Daily Favorites will NOT be deleted.${DAM_RESET}"
-  echo
-
-  local preset_file="$ROOT_DIR/presets/recommended-daily.tsv"
-  if [ -f "$preset_file" ]; then
-    local alias_name alias_note
-    while IFS=$'\t' read -r alias_name alias_note; do
-      case "$alias_name" in ""|\#*) continue ;; esac
-      printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "$alias_name" "$alias_note"
-    done < "$preset_file"
-  else
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "projectdoctor" "Inspect current Laravel/PHP project"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "myroutes" "Show Laravel routes"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "sup" "Start Sail detached"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "nrd" "Start frontend dev server"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "pint" "Format PHP code"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "pest" "Run tests"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "rcheck" "Preview Rector changes"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "stan" "Static analysis"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "qa" "Full quality pipeline"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gs" "Git status"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gcam" "Add all and commit with message"
-    printf "  ${DAM_RED}%-16s${DAM_RESET} %s\n" "gp" "Push branch"
-  fi
-
-  echo
-  echo "${DAM_GRAY}You can edit later with:${DAM_RESET}"
-  echo "  dam daily choose"
-  echo "  dam daily add NAME"
-  echo "  dam daily remove NAME"
-  echo "  dam daily reset"
-}
-
 for arg in "$@"; do
   case "$arg" in
-    --zsh|--bash|--both) MODE="$arg" ;;
+    --zsh|--bash|--both|--auto) MODE="$arg" ;;
     --no-wizard) RUN_WIZARD=0 ;;
     --no-clean) CLEAN=0 ;;
     --clean) CLEAN=1 ;;
     --no-reload-prompt) PROMPT_RELOAD=0 ;;
     -h|--help)
       cat <<'EOF'
-Usage: ./install.sh [--zsh|--bash|--both] [--clean] [--no-wizard] [--no-reload-prompt]
+Usage: ./install.sh [--auto|--zsh|--bash|--both] [--clean] [--no-wizard] [--no-reload-prompt]
 
 Default behavior:
   - installs or updates DAM
   - keeps existing aliases, Daily Favorites, and config
   - opens wizard
-  - shows recommended Daily Favorites preview
-  - asks whether to install recommended Daily Favorites
+  - detects your current shell and writes the source block there
+  - lets you choose Daily Favorites from installed aliases
   - asks whether to reload shell now
 
 Options:
+  --auto              detect zsh/bash from $SHELL and current process
+  --zsh               configure ~/.zshrc
+  --bash              configure ~/.bashrc
+  --both              configure ~/.zshrc and ~/.bashrc
   --clean             remove existing DAM config before install
   --no-clean          keep existing DAM files
   --no-wizard         install without opening wizard
@@ -165,9 +135,6 @@ fi
 
 cp "$ROOT_DIR/core/dam.sh" "$CONFIG_DIR/dam.sh"
 mkdir -p "$CONFIG_DIR/presets"
-if [ -f "$ROOT_DIR/presets/recommended-daily.tsv" ]; then
-  cp "$ROOT_DIR/presets/recommended-daily.tsv" "$CONFIG_DIR/presets/recommended-daily.tsv"
-fi
 touch "$CONFIG_DIR/commands.sh" "$CONFIG_DIR/commands.db" "$CONFIG_DIR/custom-aliases.sh" "$CONFIG_DIR/daily.db"
 
 add_source_block() {
@@ -193,6 +160,24 @@ EOF
   echo "Configured: $rc_file"
 }
 
+detect_shell_mode() {
+  case "${SHELL##*/}" in
+    zsh) echo "--zsh"; return 0 ;;
+    bash) echo "--bash"; return 0 ;;
+  esac
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    echo "--zsh"
+  elif [ -n "${BASH_VERSION:-}" ]; then
+    echo "--bash"
+  else
+    echo "--both"
+  fi
+}
+
+if [ "$MODE" = "--auto" ]; then
+  MODE="$(detect_shell_mode)"
+fi
+
 case "$MODE" in
   --zsh) add_source_block "$HOME/.zshrc" "source" ;;
   --bash) add_source_block "$HOME/.bashrc" "." ;;
@@ -205,6 +190,7 @@ esac
 echo
 dam_install_ok "Dev Alias Manager installed."
 echo "${DAM_GRAY}Only aliases/help were installed. External programs were not installed.${DAM_RESET}"
+echo "${DAM_GRAY}Shell source target: ${DAM_ORANGE}${MODE#--}${DAM_RESET}"
 echo
 
 # shellcheck disable=SC1090
@@ -216,19 +202,15 @@ else
   dam repair || true
 fi
 
-echo
-dam_install_recommended_daily_preview
-
 if [ -t 0 ]; then
-  dam_install_recommended "⭐ Install recommended Daily Favorites now? [Y/n]" "Optional but useful. This MERGES defaults into your Daily list; custom favorites will NOT be deleted. Press Enter for Yes."
-  if dam_prompt_yes_no "Choose [Y/n]:"; then
-    dam daily install || true
+  dam_install_panel "Choose Daily Favorites? [Y/n]" "Optional. Pick aliases with checkboxes or add one later with: dam daily add NAME"
+  if dam_prompt_yes_no "Open Daily chooser [Y/n]:"; then
+    dam daily choose || true
   else
-    dam_install_warn "Skipped recommended Daily Favorites."
+    dam_install_warn "Skipped Daily Favorites setup."
     echo
-    echo "${DAM_RED}${DAM_BOLD}Run later:${DAM_RESET}"
-    echo "  dam daily install"
-    echo "  dam daily recommended"
+    echo "${DAM_RED}${DAM_BOLD}Run later:${DAM_RESET} dam daily choose"
+    echo "${DAM_GRAY}Search first:${DAM_RESET} dam search sail"
   fi
 else
   dam daily table || true

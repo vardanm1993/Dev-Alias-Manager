@@ -24,6 +24,9 @@ fi
 _dam_c_reset=$'\033[0m'
 _dam_c_red=$'\033[38;5;196m'
 _dam_c_red2=$'\033[38;5;203m'
+_dam_c_orange=$'\033[38;5;208m'
+_dam_c_pink=$'\033[38;5;204m'
+_dam_c_blue=$'\033[38;5;39m'
 _dam_c_white=$'\033[38;5;255m'
 _dam_c_gray=$'\033[38;5;250m'
 _dam_c_muted=$'\033[38;5;245m'
@@ -35,6 +38,7 @@ _dam_color_off_if_needed() {
   [ -t 1 ] && return 0
   _dam_c_reset=""; _dam_c_red=""; _dam_c_red2=""; _dam_c_white=""
   _dam_c_gray=""; _dam_c_muted=""; _dam_c_dim=""; _dam_c_green=""; _dam_c_yellow=""
+  _dam_c_orange=""; _dam_c_pink=""; _dam_c_blue=""
 }
 _dam_color_off_if_needed
 
@@ -43,12 +47,16 @@ _dam_warn() { printf "%sWARN%s %s\n" "$_dam_c_yellow" "$_dam_c_reset" "$1"; }
 _dam_err() { printf "%sERR%s %s\n" "$_dam_c_red" "$_dam_c_reset" "$1"; }
 
 _dam_panel() {
-  printf "\n%s%s%s\n" "$_dam_c_red" "$1" "$_dam_c_reset"
-  [ -n "${2:-}" ] && printf "%s%s%s\n" "$_dam_c_gray" "$2" "$_dam_c_reset"
+  printf "\n%s╭────────────────────────────────────────────────────────────╮%s\n" "$_dam_c_red" "$_dam_c_reset"
+  printf "%s│%s %s%-58.58s%s %s│%s\n" "$_dam_c_red" "$_dam_c_reset" "$_dam_c_pink" "$1" "$_dam_c_reset" "$_dam_c_red" "$_dam_c_reset"
+  if [ -n "${2:-}" ]; then
+    printf "%s│%s %s%-58.58s%s %s│%s\n" "$_dam_c_red" "$_dam_c_reset" "$_dam_c_gray" "$2" "$_dam_c_reset" "$_dam_c_red" "$_dam_c_reset"
+  fi
+  printf "%s╰────────────────────────────────────────────────────────────╯%s\n" "$_dam_c_red" "$_dam_c_reset"
 }
 
 _dam_rule() {
-  printf "%s%s%s\n" "$_dam_c_dim" "----------------------------------------------------------------" "$_dam_c_reset"
+  printf "%s%s%s\n" "$_dam_c_dim" "────────────────────────────────────────────────────────────────────────────────────────────" "$_dam_c_reset"
 }
 
 _dam_tty() {
@@ -57,6 +65,16 @@ _dam_tty() {
 
 _dam_has_sail() {
   [ "${USE_SAIL:-auto}" != "0" ] && [ "${DAM_AUTO_SAIL:-1}" != "0" ] && [ -f "$DAM_SAIL_BIN" ]
+}
+
+_dam_sail_command() {
+  local subcommand="$1"
+  shift
+  if [ -f "$DAM_SAIL_BIN" ]; then
+    "$DAM_SAIL_BIN" "$subcommand" "$@"
+  else
+    _dam_missing "Sail not found. Install it with: php artisan sail:install, or edit DAM_SAIL_BIN with: dam config"
+  fi
 }
 
 dam_mode() {
@@ -203,6 +221,22 @@ _dam_db_find() {
   awk -F '\t' -v n="$name" 'NF >= 5 && $1 == n {print; exit}' "$DAM_HOME/commands.db" 2>/dev/null
 }
 
+_dam_parse_db_line() {
+  local line="$1" tab=$'\t' rest
+  _dam_db_name="${line%%$tab*}"
+  [ "$line" != "$_dam_db_name" ] || return 1
+  rest="${line#*$tab}"
+  _dam_db_category="${rest%%$tab*}"
+  [ "$rest" != "$_dam_db_category" ] || return 1
+  rest="${rest#*$tab}"
+  _dam_db_kind="${rest%%$tab*}"
+  [ "$rest" != "$_dam_db_kind" ] || return 1
+  rest="${rest#*$tab}"
+  _dam_db_command="${rest%%$tab*}"
+  [ "$rest" != "$_dam_db_command" ] || return 1
+  _dam_db_description="${rest#*$tab}"
+}
+
 _dam_alias_exists() {
   [ -n "$(_dam_db_find "$1")" ] || command -v "$1" >/dev/null 2>&1
 }
@@ -266,8 +300,45 @@ _dam_remove() {
   _dam_ok "Removed alias: $name"
 }
 
+_dam_category_color() {
+  case "$1" in
+    laravel) printf '%s' "$_dam_c_red2" ;;
+    sail) printf '%s' "$_dam_c_orange" ;;
+    docker) printf '%s' "$_dam_c_blue" ;;
+    frontend) printf '%s' "$_dam_c_green" ;;
+    php) printf '%s' "$_dam_c_yellow" ;;
+    quality|security) printf '%s' "$_dam_c_pink" ;;
+    git|github) printf '%s' "$_dam_c_gray" ;;
+    *) printf '%s' "$_dam_c_muted" ;;
+  esac
+}
+
+_dam_table_header() {
+  printf "%s%-18s %-12s %-9s %-30s %s%s\n" "$_dam_c_red2" "Alias" "Pack" "Kind" "Command" "Subtitle" "$_dam_c_reset"
+  _dam_rule
+}
+
+_dam_table_row() {
+  local name="$1" category="$2" kind="$3" command_text="$4" description="$5" c
+  c="$(_dam_category_color "$category")"
+  printf "%s%-18s%s %s%-12s%s %s%-9s%s %-30.30s %s\n" \
+    "$_dam_c_white" "$name" "$_dam_c_reset" \
+    "$c" "$category" "$_dam_c_reset" \
+    "$_dam_c_orange" "$kind" "$_dam_c_reset" \
+    "$command_text" "$description"
+}
+
 _dam_print_alias_rows() {
-  awk -F '\t' 'NF >= 5 {printf "%-18s %-11s %-9s %-28s %s\n", $1, $2, $3, $4, $5}' "$DAM_HOME/commands.db" 2>/dev/null
+  local line last_category=""
+  while IFS= read -r line; do
+    _dam_parse_db_line "$line" || continue
+    [ -n "$_dam_db_name" ] || continue
+    if [ "$_dam_db_category" != "$last_category" ]; then
+      printf "\n%s%s aliases%s\n" "$(_dam_category_color "$_dam_db_category")" "$_dam_db_category" "$_dam_c_reset"
+      last_category="$_dam_db_category"
+    fi
+    _dam_table_row "$_dam_db_name" "$_dam_db_category" "$_dam_db_kind" "$_dam_db_command" "$_dam_db_description"
+  done < "$DAM_HOME/commands.db"
 }
 
 _dam_list() {
@@ -277,32 +348,38 @@ _dam_list() {
     return 0
   fi
   _dam_panel "Installed Aliases" "Mode: $(dam_mode). Search: dam search WORD. Explain: dam help alias NAME."
-  printf "%s%-18s %-11s %-9s %-28s %s%s\n" "$_dam_c_red2" "Alias" "Category" "Kind" "Command" "Description" "$_dam_c_reset"
-  _dam_rule
+  _dam_table_header
   _dam_print_alias_rows
 }
 
 _dam_category() {
   local category="${1:-}"
   [ -n "$category" ] || { echo "Usage: dam category CATEGORY"; return 1; }
-  awk -F '\t' -v c="$category" 'NF >= 5 && $2 == c {printf "%-18s %-9s %-30s %s\n", $1, $3, $4, $5}' "$DAM_HOME/commands.db"
+  _dam_panel "$category Aliases" "Install/check aliases by pack with subtitles."
+  _dam_table_header
+  local line
+  while IFS= read -r line; do
+    _dam_parse_db_line "$line" || continue
+    [ "$_dam_db_category" = "$category" ] || continue
+    _dam_table_row "$_dam_db_name" "$_dam_db_category" "$_dam_db_kind" "$_dam_db_command" "$_dam_db_description"
+  done < "$DAM_HOME/commands.db"
 }
 
 _dam_search() {
   local query="${1:-}"
   [ -n "$query" ] || { echo "Usage: dam search WORD"; return 1; }
   _dam_panel "Search: $query" "Matches aliases, categories, commands, and descriptions."
-  awk -F '\t' -v q="$query" '
-    BEGIN { q=tolower(q); found=0 }
-    NF >= 5 {
-      line=tolower($1 " " $2 " " $3 " " $4 " " $5)
-      if (index(line, q) > 0) {
-        printf "%-18s %-11s %-9s %-28s %s\n", $1, $2, $3, $4, $5
-        found=1
-      }
-    }
-    END { if (!found) print "No matches." }
-  ' "$DAM_HOME/commands.db"
+  _dam_table_header
+  local line q found=0
+  q="$(printf '%s' "$query" | tr '[:upper:]' '[:lower:]')"
+  while IFS= read -r line; do
+    _dam_parse_db_line "$line" || continue
+    line="$(printf '%s' "$_dam_db_name $_dam_db_category $_dam_db_kind $_dam_db_command $_dam_db_description" | tr '[:upper:]' '[:lower:]')"
+    case "$line" in
+      *"$q"*) _dam_table_row "$_dam_db_name" "$_dam_db_category" "$_dam_db_kind" "$_dam_db_command" "$_dam_db_description"; found=1 ;;
+    esac
+  done < "$DAM_HOME/commands.db"
+  [ "$found" = "1" ] || echo "No matches."
 }
 
 _dam_note_for_alias() {
@@ -347,19 +424,20 @@ _dam_daily_show() {
   _dam_panel "Daily Favorites" "Your short list for commands you use or forget often."
   if [ ! -s "$DAM_HOME/daily.db" ]; then
     echo "No Daily Favorites yet."
-    echo "Try: dam daily install"
-    echo "Or:  dam daily choose"
+    echo "Add one:     dam daily add ALIAS"
+    echo "Search:      dam daily search WORD"
+    echo "Checkbox UI: dam daily choose"
     return 0
   fi
   local n=1
   while IFS='|' read -r name note; do
-    printf "%2s. %s%-18s%s %s\n" "$n" "$_dam_c_red2" "$name" "$_dam_c_reset" "$note"
+    printf "%s%2s%s  %s%-18s%s %s\n" "$_dam_c_orange" "$n" "$_dam_c_reset" "$_dam_c_red2" "$name" "$_dam_c_reset" "$note"
     n=$((n + 1))
   done < "$DAM_HOME/daily.db"
 }
 
 _dam_daily_run() {
-  [ -s "$DAM_HOME/daily.db" ] || { _dam_warn "Daily is empty. Run: dam daily install"; return 1; }
+  [ -s "$DAM_HOME/daily.db" ] || { _dam_warn "Daily is empty. Run: dam daily choose"; return 1; }
   local name note
   while IFS='|' read -r name note; do
     _dam_panel "Running: $name" "$note"
@@ -368,50 +446,10 @@ _dam_daily_run() {
   done < "$DAM_HOME/daily.db"
 }
 
-_dam_daily_recommended_names() {
-  local file="$DAM_HOME/presets/recommended-daily.tsv"
-  if [ -f "$file" ]; then
-    awk -F '\t' 'NF >= 1 && $1 !~ /^#/ && $1 != "" {print $1}' "$file"
-  else
-    printf '%s\n' projectdoctor myroutes sup nrd pint pest rcheck stan qa gs gcam gp
-  fi
-}
-
-_dam_daily_recommended_rows() {
-  local file="$DAM_HOME/presets/recommended-daily.tsv"
-  if [ -f "$file" ]; then
-    awk -F '\t' 'NF >= 1 && $1 !~ /^#/ && $1 != "" {print}' "$file"
-  else
-    local name
-    while IFS= read -r name; do
-      printf "%s\t%s\n" "$name" "$(_dam_note_for_alias "$name")"
-    done <<EOF_DAM_REC_ROWS
-$(_dam_daily_recommended_names)
-EOF_DAM_REC_ROWS
-  fi
-}
-
-_dam_daily_install() {
-  local name
-  _dam_repair_quiet
-  while IFS= read -r name; do
-    _dam_daily_add "$name" "$(_dam_note_for_alias "$name")" >/dev/null || true
-  done <<EOF_DAM_DAILY
-$(_dam_daily_recommended_names)
-EOF_DAM_DAILY
-  _dam_ok "Recommended Daily Favorites installed."
-  _dam_daily_show
-}
-
-_dam_daily_reset() {
-  : > "$DAM_HOME/daily.db"
-  _dam_daily_install
-}
-
 _dam_daily_choose_text() {
   _dam_list
   echo
-  echo "Type aliases to add to Daily, separated by spaces."
+  echo "Type aliases to add to Daily, separated by spaces. Leave empty to exit."
   printf "Aliases: "
   local line name
   read -r line
@@ -423,26 +461,28 @@ _dam_daily_choose_text() {
 _dam_daily_choose_dialog() {
   local backend="$1"
   local -a opts
-  local name category kind command_text description selected
+  local line selected
 
-  while IFS=$'\t' read -r name category kind command_text description; do
-    [ -n "$name" ] || continue
-    if _dam_daily_contains "$name"; then
-      opts+=("$name" "$category - $description" "on")
+  while IFS= read -r line; do
+    _dam_parse_db_line "$line" || continue
+    [ -n "$_dam_db_name" ] || continue
+    if _dam_daily_contains "$_dam_db_name"; then
+      opts+=("$_dam_db_name" "$_dam_db_category - $_dam_db_description" "on")
     else
-      opts+=("$name" "$category - $description" "off")
+      opts+=("$_dam_db_name" "$_dam_db_category - $_dam_db_description" "off")
     fi
   done < "$DAM_HOME/commands.db"
 
   [ "${#opts[@]}" -gt 0 ] || { _dam_warn "No aliases installed. Run: dam wizard"; return 1; }
 
   if [ "$backend" = "dialog" ]; then
-    selected=$(dialog --stdout --title "Dev Alias Manager" --checklist "Choose Daily Favorites" 24 92 16 "${opts[@]}") || return 0
+    selected=$(dialog --stdout --title "Laravel Alias Manager" --checklist "Choose Daily Favorites from installed aliases" 24 100 16 "${opts[@]}") || return 0
   else
-    selected=$(whiptail --title "Dev Alias Manager" --checklist "Choose Daily Favorites" 24 92 16 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
+    selected=$(whiptail --title "Laravel Alias Manager" --checklist "Choose Daily Favorites from installed aliases" 24 100 16 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
   fi
 
   selected="${selected//\"/}"
+  : > "$DAM_HOME/daily.db"
   for name in $selected; do
     _dam_daily_add "$name" >/dev/null || true
   done
@@ -471,18 +511,18 @@ _dam_daily_menu() {
   while true; do
     _dam_daily_show
     echo
-    printf "%s1%s recommended   %s2%s install defaults   %s3%s choose   %s4%s run   %s5%s search   %s0%s exit\n" \
-      "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset"
+    printf "%s1%s choose   %s2%s add one   %s3%s search   %s4%s run   %s5%s clear   %s0%s exit\n" \
+      "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset" "$_dam_c_blue" "$_dam_c_reset" "$_dam_c_green" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_muted" "$_dam_c_reset"
     printf "Choose: "
-    local choice query
+    local choice query name
     read -r choice
     case "$choice" in
       ""|0|q|quit|exit) break ;;
-      1|recommended) _dam_daily_recommended ;;
-      2|install|preset) _dam_daily_install ;;
-      3|choose) _dam_daily_choose ;;
+      1|choose) _dam_daily_choose ;;
+      2|add) printf "Alias: "; read -r name; _dam_daily_add "$name" ;;
+      3|search) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Add alias from results (empty to skip): "; read -r name; [ -n "$name" ] && _dam_daily_add "$name" ;;
       4|run) _dam_daily_run ;;
-      5|search) printf "Search: "; read -r query; _dam_search "$query" ;;
+      5|clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
       *) echo "Unknown choice." ;;
     esac
     echo
@@ -491,39 +531,21 @@ _dam_daily_menu() {
   done
 }
 
-_dam_daily_recommended() {
-  _dam_repair_quiet
-  _dam_panel "Recommended Daily Favorites" "A practical starter list for Laravel/PHP fullstack work."
-  local name note
-  while IFS=$'\t' read -r name note; do
-    [ -n "$name" ] || continue
-    printf "%s%-18s%s %s\n" "$_dam_c_red2" "$name" "$_dam_c_reset" "${note:-$(_dam_note_for_alias "$name")}"
-  done <<EOF_DAM_REC
-$(_dam_daily_recommended_rows)
-EOF_DAM_REC
-  echo
-  echo "Install/merge: dam daily install"
-  echo "Replace list:   dam daily reset"
-}
-
 _dam_daily() {
   local action="${1:-show}"
   shift 2>/dev/null || true
   case "$action" in
     show|list|"") if _dam_tty; then _dam_daily_menu; else _dam_daily_show; fi ;;
     table|compact|print) _dam_daily_show ;;
-    recommended|recommend|1) _dam_daily_recommended ;;
-    install|preset|2) _dam_daily_install ;;
-    reset) _dam_daily_reset ;;
-    choose|select|3) _dam_daily_choose ;;
+    choose|select|1) _dam_daily_choose ;;
     add) _dam_daily_add "$@" ;;
     remove|rm|delete) _dam_daily_remove "$@" ;;
     run|4) _dam_daily_run ;;
-    search|find|5) _dam_search "$@" ;;
+    search|find|3) _dam_search "$@" ;;
     clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
     edit) "${EDITOR:-nano}" "$DAM_HOME/daily.db" ;;
     help) _dam_help_daily ;;
-    *) echo "Usage: dam daily [install|reset|recommended|choose|add|remove|run|search|clear|edit]" ;;
+    *) echo "Usage: dam daily [choose|add|remove|run|search|clear|edit]" ;;
   esac
 }
 
@@ -551,9 +573,9 @@ _dam_help_add() {
 _dam_help_daily() {
   _dam_help_table "Daily Favorites" "A small personal list for commands you use most." \
     "dam daily|open Daily menu" \
-    "dam daily install|merge recommended favorites" \
     "dam daily choose|checkbox chooser from installed aliases" \
     "dam daily add NAME|add one alias" \
+    "dam daily search WORD|search aliases before adding" \
     "dam daily remove NAME|remove one alias" \
     "dam daily run|run all Daily commands in order"
 }
@@ -582,7 +604,7 @@ _dam_help() {
       ;;
     topics)
       _dam_help_table "Help Topics" "Use: dam help TOPIC" \
-        "quick|recommended first steps" "daily|Daily Favorites" "add|custom aliases" \
+        "quick|first steps" "daily|Daily Favorites" "add|custom aliases" \
         "laravel|Laravel aliases" "sail|Laravel Sail aliases" "quality|Pest/Pint/Rector/PHPStan" \
         "frontend|npm/Vite aliases" "docker|Docker aliases" "git|Git aliases" \
         "github|GitHub CLI aliases" "php|PHP and Composer aliases" "linux|Linux helpers" \
@@ -592,7 +614,7 @@ _dam_help() {
     aliases|list) _dam_list ;;
     quick)
       _dam_help_table "Quick Start" "Good first commands after install." \
-        "dam wizard|install recommended packs" "dam daily install|install practical daily list" \
+        "dam wizard|install fullstack alias packs" "dam daily choose|pick your Daily Favorites" \
         "dam search route|find route aliases" "projectdoctor|inspect project" "sup|start Sail" \
         "nrd|start Vite dev server" "qa|run quality pipeline"
       ;;
@@ -671,7 +693,7 @@ _dam_packs() {
     "linux|terminal and Ubuntu helpers" "git|Git aliases" "github|GitHub CLI aliases" \
     "docker|Docker Compose aliases" "php|PHP and Composer aliases" "frontend|npm/Vite aliases" \
     "laravel|Artisan/Laravel workflow" "sail|Laravel Sail aliases" "quality|Pest/Pint/Rector/PHPStan" \
-    "security|audit and env checks" "workflow|project start/check aliases" "fullstack|recommended all-in-one pack"
+    "security|audit and env checks" "workflow|project start/check aliases" "fullstack|all-in-one Laravel/PHP pack"
 }
 
 _dam_preset_linux() {
@@ -716,6 +738,8 @@ _dam_preset_docker() {
 
 _dam_preset_php() {
   _dam_add_full phpv php php '-v' 'PHP version'
+  _dam_add_full phpi php php '-i' 'PHP info'
+  _dam_add_full phpm php php '-m' 'Loaded PHP modules'
   _dam_add_full ci php composer 'install' 'Composer install'
   _dam_add_full cu php composer 'update' 'Composer update'
   _dam_add_full creq php composer 'require' 'Composer require'
@@ -723,6 +747,9 @@ _dam_preset_php() {
   _dam_add_full cda php composer 'dump-autoload' 'Dump autoload'
   _dam_add_full cval php composer 'validate --strict' 'Validate composer.json'
   _dam_add_full caudit php composer 'audit' 'Composer audit'
+  _dam_add_full coutdated php composer 'outdated --direct' 'Show direct outdated packages'
+  _dam_add_full cwhy php composer 'why' 'Explain why package is installed'
+  _dam_add_full cwhy_not php composer 'why-not' 'Explain package constraint conflict'
 }
 
 _dam_preset_frontend() {
@@ -739,11 +766,18 @@ _dam_preset_frontend() {
 _dam_preset_laravel() {
   _dam_add_full art laravel artisan '' 'Run any artisan command'
   _dam_add_full projectdoctor laravel raw 'echo "Mode: $(dam_mode)"; echo "PWD: $(pwd)"; command -v php >/dev/null && php -v | head -1 || echo "php not found"; command -v composer >/dev/null && composer --version || echo "composer not found"; command -v node >/dev/null && node -v || true; command -v npm >/dev/null && npm -v || true; [ -f "$DAM_ARTISAN_BIN" ] && _dam_run artisan "about" || echo "artisan not found"' 'Inspect current Laravel/PHP project'
+  _dam_add_full serve laravel artisan 'serve' 'Start Laravel local server'
   _dam_add_full myroutes laravel artisan 'route:list' 'Show Laravel routes'
   _dam_add_full routes laravel artisan 'route:list' 'Show Laravel routes'
   _dam_add_full about laravel artisan 'about' 'Show Laravel app info'
   _dam_add_full tinker laravel artisan 'tinker' 'Open Tinker'
   _dam_add_full clearcache laravel artisan 'optimize:clear' 'Clear Laravel caches'
+  _dam_add_full optimize laravel artisan 'optimize' 'Cache framework bootstrap'
+  _dam_add_full configcache laravel artisan 'config:cache' 'Cache config'
+  _dam_add_full routecache laravel artisan 'route:cache' 'Cache routes'
+  _dam_add_full viewclear laravel artisan 'view:clear' 'Clear compiled views'
+  _dam_add_full storage laravel artisan 'storage:link' 'Create storage symlink'
+  _dam_add_full sailinstall laravel artisan 'sail:install' 'Install Laravel Sail'
   _dam_add_full dbmigrate laravel artisan 'migrate' 'Run migrations'
   _dam_add_full dbfresh laravel artisan 'migrate:fresh --seed' 'Fresh DB with seed'
   _dam_add_full dbseed laravel artisan 'db:seed' 'Run seeders'
@@ -767,6 +801,13 @@ _dam_preset_laravel() {
   _dam_add_full mkres laravel artisan 'make:resource' 'Make API resource'
   _dam_add_full mktest laravel artisan 'make:test' 'Make feature test'
   _dam_add_full mktestu laravel artisan 'make:test --unit' 'Make unit test'
+  _dam_add_full mkmid laravel artisan 'make:middleware' 'Make middleware'
+  _dam_add_full mkjob laravel artisan 'make:job' 'Make queued job'
+  _dam_add_full mkevent laravel artisan 'make:event' 'Make event'
+  _dam_add_full mklistener laravel artisan 'make:listener' 'Make listener'
+  _dam_add_full mkmail laravel artisan 'make:mail' 'Make mailable'
+  _dam_add_full mkpolicy laravel artisan 'make:policy' 'Make policy'
+  _dam_add_full mkcommand laravel artisan 'make:command' 'Make Artisan command'
 }
 
 _dam_preset_sail() {
@@ -780,8 +821,12 @@ _dam_preset_sail() {
   _dam_add_full slog sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" logs -f || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Sail logs'
   _dam_add_full sshapp sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" shell || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Open Sail shell'
   _dam_add_full sroot sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" root-shell || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Open Sail root shell'
+  _dam_add_full sart sail raw '_dam_sail_command artisan' 'Run Artisan through Sail'
+  _dam_add_full sphp sail raw '_dam_sail_command php' 'Run PHP through Sail'
+  _dam_add_full scomposer sail raw '_dam_sail_command composer' 'Run Composer through Sail'
   _dam_add_full snrd sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" npm run dev || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Run npm dev through Sail'
   _dam_add_full snrb sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" npm run build || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Run npm build through Sail'
+  _dam_add_full stest sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" test || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Run tests through Sail'
 }
 
 _dam_preset_quality() {
@@ -849,9 +894,9 @@ _dam_repair_quiet() {
 }
 
 _dam_repair() {
-  _dam_panel "Repair / Install Recommended Pack" "Reinstalling recommended Laravel/PHP fullstack aliases."
+  _dam_panel "Repair / Install Fullstack Pack" "Reinstalling Laravel/PHP fullstack aliases."
   _dam_preset_fullstack
-  _dam_ok "Recommended aliases are ready."
+  _dam_ok "Fullstack aliases are ready."
 }
 
 _dam_check() {
@@ -869,7 +914,7 @@ _dam_check() {
 
 _dam_wizard_text() {
   _dam_panel "Dev Alias Manager Setup" "No dialog/whiptail found. Install dialog for checkbox UI: sudo apt install dialog"
-  echo "1) Recommended Laravel/PHP fullstack pack"
+  echo "1) Laravel/PHP fullstack pack"
   echo "2) Laravel + Sail + Frontend + Quality"
   echo "3) Git + Docker + PHP"
   echo "0) Exit"
@@ -902,9 +947,9 @@ _dam_wizard_checklist() {
   )
 
   if [ "$backend" = "dialog" ]; then
-    selected=$(dialog --stdout --title "Dev Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 92 14 "${opts[@]}") || return 0
+    selected=$(dialog --stdout --title "Laravel Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 100 14 "${opts[@]}") || return 0
   else
-    selected=$(whiptail --title "Dev Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 92 14 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
+    selected=$(whiptail --title "Laravel Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 100 14 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
   fi
 
   selected="${selected//\"/}"
@@ -913,7 +958,7 @@ _dam_wizard_checklist() {
     _dam_preset "$pack"
   done
   _dam_ok "Selected alias packs installed."
-  echo "Next: dam daily install"
+  echo "Next: dam daily choose"
 }
 
 dam_wizard() {
@@ -942,7 +987,7 @@ dam() {
   shift 2>/dev/null || true
   case "$action" in
     wizard|setup|menu) dam_wizard ;;
-    repair|install-recommended) _dam_repair ;;
+    repair|install-fullstack) _dam_repair ;;
     preset|pack) _dam_preset "$@" ;;
     packs|presets) _dam_packs ;;
     list|ls|aliases) _dam_list ;;
