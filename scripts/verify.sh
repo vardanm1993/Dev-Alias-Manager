@@ -32,8 +32,8 @@ run_behavior_test() {
     dam preset fullstack >/dev/null
     [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 90 ]
 
-    gs >/tmp/dam-verify-gs.out 2>&1 || true
-    ! grep -q "git status -sb not found" /tmp/dam-verify-gs.out
+    gst >/tmp/dam-verify-gst.out 2>&1 || true
+    ! grep -q "git status -sb not found" /tmp/dam-verify-gst.out
 
     dam search route >/tmp/dam-verify-search.out
     grep -q "myroutes" /tmp/dam-verify-search.out

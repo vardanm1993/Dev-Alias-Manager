@@ -105,8 +105,8 @@ The checkbox chooser shows every installed alias with its pack subtitle, for exa
 | Frontend | npm and Vite workflows | `ni`, `nrd`, `nrb`, `nrt`, `nrl`, `npreview` |
 | PHP / Composer | PHP and Composer workflows | `phpv`, `phpm`, `ci`, `cu`, `creq`, `caudit`, `coutdated` |
 | Quality | Pest, Pint, Rector, PHPStan | `pint`, `pest`, `rcheck`, `rfix`, `stan`, `qa` |
-| Docker | Docker Compose and cleanup | `dc`, `dcu`, `dcub`, `dcd`, `dcl`, `dps`, `dprune` |
-| Git | Daily Git commands | `gs`, `ga`, `gaa`, `gcm`, `gcam`, `gp`, `gpf` |
+| Docker | Docker Compose and cleanup | `dcomp`, `dcu`, `dcub`, `dcd`, `dcl`, `dps`, `dprune` |
+| Git | Daily Git commands | `gst`, `ga`, `gaa`, `gcm`, `gcam`, `gp`, `gpf` |
 | GitHub | GitHub CLI helpers | `ghpr`, `ghprv`, `ghprs`, `ghruns`, `ghwatch` |
 | Linux | Terminal and Ubuntu helpers | `cls`, `update`, `cleanup`, `ports`, `disk`, `mem` |
 | Security | Laravel project safety checks | `secenv`, `seckey`, `secaudit`, `secnpm`, `secperms` |

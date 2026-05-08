@@ -797,11 +797,12 @@ _dam_help_table() {
   local title="$1" subtitle="$2"
   shift 2
   _dam_panel "$title" "$subtitle"
-  local row cmd desc
+  local row cmd desc n=1
   for row in "$@"; do
     cmd="${row%%|*}"
     desc="${row#*|}"
-    printf "%s%-28s%s %s\n" "$_dam_c_red2" "$cmd" "$_dam_c_reset" "$desc"
+    printf "%s%2s%s  %s%-30s%s %s\n" "$_dam_c_orange" "$n" "$_dam_c_reset" "$_dam_c_red2" "$cmd" "$_dam_c_reset" "$desc"
+    n=$((n + 1))
   done
 }
 
@@ -891,12 +892,12 @@ _dam_help() {
       ;;
     docker)
       _dam_help_table "Docker" "Docker Compose helpers." \
-        "dc|docker compose" "dcu|docker compose up -d" "dcub|up with build" \
+        "dcomp|docker compose" "dcu|docker compose up -d" "dcub|up with build" \
         "dcd|down" "dcl|logs -f" "dps|docker ps" "dprune|system prune -af"
       ;;
     git)
       _dam_help_table "Git" "Daily Git aliases." \
-        "gs|git status -sb" "ga FILE|git add" "gaa|git add -A" "gcm 'msg'|commit" \
+        "gst|git status -sb" "ga FILE|git add" "gaa|git add -A" "gcm 'msg'|commit" \
         "gcam 'msg'|add all and commit" "gp|push" "gpf|force-with-lease"
       ;;
     github|gh)
@@ -953,7 +954,7 @@ _dam_preset_linux() {
 }
 
 _dam_preset_git() {
-  _dam_add_full gs git system 'git status -sb' 'Git status'
+  _dam_add_full gst git system 'git status -sb' 'Git status'
   _dam_add_full ga git system 'git add' 'Git add files'
   _dam_add_full gaa git system 'git add -A' 'Git add all'
   _dam_add_full gcm git system 'git commit -m' 'Commit with message'
@@ -972,7 +973,7 @@ _dam_preset_github() {
 }
 
 _dam_preset_docker() {
-  _dam_add_full dc docker system 'docker compose' 'Docker Compose'
+  _dam_add_full dcomp docker system 'docker compose' 'Docker Compose'
   _dam_add_full dcu docker system 'docker compose up -d' 'Compose up detached'
   _dam_add_full dcub docker system 'docker compose up -d --build' 'Compose up with build'
   _dam_add_full dcd docker system 'docker compose down' 'Compose down'
