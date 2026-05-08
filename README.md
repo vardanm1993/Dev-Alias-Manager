@@ -10,7 +10,8 @@ DAM does not install Docker, PHP, Composer, Node, Laravel, Sail, or third-party 
 
 - Laravel-style setup prompts with checkbox screens when `dialog` or `whiptail` is available.
 - Automatic zsh/bash detection during install.
-- Colorful tables for alias lists, categories, searches, and Daily Favorites.
+- Colorful icon tables for alias lists, categories, searches, and Daily Favorites.
+- Conflict checks before aliases are saved, with options to skip/delete the DAM alias, replace/shadow the existing command, or rename the DAM alias.
 - Alias packs with subtitles: Laravel, Sail, Docker, Frontend, PHP/Composer, Git, GitHub, Quality, Security, Linux, and Workflow.
 - Sail-aware commands: Laravel aliases use Sail automatically when `./vendor/bin/sail` exists.
 - Personal Daily Favorites: add one alias by name, search first, or choose many with checkboxes.
@@ -25,6 +26,14 @@ chmod +x install.sh uninstall.sh
 ```
 
 The installer detects your shell from `$SHELL` and writes the source block to `~/.zshrc` or `~/.bashrc`.
+
+Before setup installs packs, DAM checks whether any planned alias name already exists on your computer. If a selected alias conflicts, setup asks what to do:
+
+```text
+s = skip/delete the DAM alias
+r = replace/shadow the existing command
+n = rename the DAM alias
+```
 
 You can force a target shell:
 

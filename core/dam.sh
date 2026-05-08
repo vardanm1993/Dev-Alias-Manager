@@ -59,6 +59,30 @@ _dam_rule() {
   printf "%s%s%s\n" "$_dam_c_dim" "────────────────────────────────────────────────────────────────────────────────────────────" "$_dam_c_reset"
 }
 
+_dam_table_top() {
+  printf "%s%s%s\n" "$_dam_c_dim" "┌──────┬────────────────────┬──────────────┬───────────┬────────────────────────────────┬──────────────────────────────┐" "$_dam_c_reset"
+}
+
+_dam_table_mid() {
+  printf "%s%s%s\n" "$_dam_c_dim" "├──────┼────────────────────┼──────────────┼───────────┼────────────────────────────────┼──────────────────────────────┤" "$_dam_c_reset"
+}
+
+_dam_table_bottom() {
+  printf "%s%s%s\n" "$_dam_c_dim" "└──────┴────────────────────┴──────────────┴───────────┴────────────────────────────────┴──────────────────────────────┘" "$_dam_c_reset"
+}
+
+_dam_daily_table_top() {
+  printf "%s%s%s\n" "$_dam_c_dim" "┌──────┬────────────────────┬──────────────┬────────────────────────────────────────────┐" "$_dam_c_reset"
+}
+
+_dam_daily_table_mid() {
+  printf "%s%s%s\n" "$_dam_c_dim" "├──────┼────────────────────┼──────────────┼────────────────────────────────────────────┤" "$_dam_c_reset"
+}
+
+_dam_daily_table_bottom() {
+  printf "%s%s%s\n" "$_dam_c_dim" "└──────┴────────────────────┴──────────────┴────────────────────────────────────────────┘" "$_dam_c_reset"
+}
+
 _dam_tty() {
   [ -t 0 ] && [ -t 1 ]
 }
@@ -241,6 +265,59 @@ _dam_alias_exists() {
   [ -n "$(_dam_db_find "$1")" ] || command -v "$1" >/dev/null 2>&1
 }
 
+_dam_existing_command_info() {
+  command -V "$1" 2>/dev/null | head -1
+}
+
+_dam_resolve_alias_conflict() {
+  _dam_resolved_name="$1"
+  local category="$2" kind="$3" command_text="$4" description="$5" answer new_name existing
+
+  while command -v "$_dam_resolved_name" >/dev/null 2>&1 && [ -z "$(_dam_db_find "$_dam_resolved_name")" ]; do
+    existing="$(_dam_existing_command_info "$_dam_resolved_name")"
+
+    if ! _dam_tty; then
+      _dam_warn "Skipped conflicting alias: $_dam_resolved_name (${existing:-already exists})"
+      return 2
+    fi
+
+    _dam_panel "⚠ Alias conflict: $_dam_resolved_name" "${existing:-A command, alias, or function already uses this name.}"
+    echo "DAM wants to add:"
+    _dam_table_top
+    printf "%s│%s %-4s %s│%s %s%-18.18s%s %s│%s %s%-12.12s%s %s│%s %s%-9.9s%s %s│%s %-30.30s %s│%s %-28.28s %s│%s\n" \
+      "$_dam_c_dim" "$_dam_c_reset" "!" "$_dam_c_dim" "$_dam_c_reset" \
+      "$_dam_c_white" "$_dam_resolved_name" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+      "$(_dam_category_color "$category")" "$category" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+      "$_dam_c_orange" "$kind" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+      "$command_text" "$_dam_c_dim" "$_dam_c_reset" "$description" "$_dam_c_dim" "$_dam_c_reset"
+    _dam_table_bottom
+    echo
+    echo "Choose: [s] skip/delete DAM alias, [r] replace/shadow existing command, [n] rename DAM alias"
+    printf "Action [s/r/n]: "
+    read -r answer
+
+    case "$answer" in
+      r|R|replace|REPLACE)
+        _dam_warn "Replacing by shell precedence: $_dam_resolved_name will call DAM before the existing command."
+        return 0
+        ;;
+      n|N|rename|RENAME)
+        printf "New alias name: "
+        read -r new_name
+        _dam_validate_name "$new_name" || continue
+        _dam_resolved_name="$new_name"
+        ;;
+      ""|s|S|skip|SKIP|delete|DELETE)
+        _dam_warn "Skipped DAM alias: $_dam_resolved_name"
+        return 2
+        ;;
+      *)
+        _dam_warn "Please choose s, r, or n."
+        ;;
+    esac
+  done
+}
+
 _dam_add_full() {
   [ "$#" -ge 5 ] || { _dam_help_add; return 1; }
 
@@ -251,6 +328,14 @@ _dam_add_full() {
   case "$kind" in
     artisan|npm|composer|php|vendor|system|raw) ;;
     *) _dam_err "Unknown kind: $kind"; echo "Allowed: artisan, npm, composer, php, vendor, system, raw"; return 1 ;;
+  esac
+
+  local conflict_status=0
+  _dam_resolve_alias_conflict "$name" "$category" "$kind" "$command_text" "$description" || conflict_status="$?"
+  case "$conflict_status" in
+    0) name="$_dam_resolved_name" ;;
+    2) return 0 ;;
+    *) return 1 ;;
   esac
 
   local commands_file="$DAM_HOME/commands.sh"
@@ -314,18 +399,25 @@ _dam_category_color() {
 }
 
 _dam_table_header() {
-  printf "%s%-18s %-12s %-9s %-30s %s%s\n" "$_dam_c_red2" "Alias" "Pack" "Kind" "Command" "Subtitle" "$_dam_c_reset"
-  _dam_rule
+  _dam_table_top
+  printf "%s│%s %-4s %s│%s %s%-18s%s %s│%s %-12s %s│%s %-9s %s│%s %-30s %s│%s %-28s %s│%s\n" \
+    "$_dam_c_dim" "$_dam_c_reset" "Icon" "$_dam_c_dim" "$_dam_c_reset" \
+    "$_dam_c_red2" "Alias" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+    "Pack" "$_dam_c_dim" "$_dam_c_reset" "Kind" "$_dam_c_dim" "$_dam_c_reset" \
+    "Command" "$_dam_c_dim" "$_dam_c_reset" "Subtitle" "$_dam_c_dim" "$_dam_c_reset"
+  _dam_table_mid
 }
 
 _dam_table_row() {
   local name="$1" category="$2" kind="$3" command_text="$4" description="$5" c
   c="$(_dam_category_color "$category")"
-  printf "%s%-18s%s %s%-12s%s %s%-9s%s %-30.30s %s\n" \
-    "$_dam_c_white" "$name" "$_dam_c_reset" \
-    "$c" "$category" "$_dam_c_reset" \
-    "$_dam_c_orange" "$kind" "$_dam_c_reset" \
-    "$command_text" "$description"
+  printf "%s│%s %-4s %s│%s %s%-18.18s%s %s│%s %s%-12.12s%s %s│%s %s%-9.9s%s %s│%s %-30.30s %s│%s %-28.28s %s│%s\n" \
+    "$_dam_c_dim" "$_dam_c_reset" "▸" "$_dam_c_dim" "$_dam_c_reset" \
+    "$_dam_c_white" "$name" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+    "$c" "$category" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+    "$_dam_c_orange" "$kind" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+    "$command_text" "$_dam_c_dim" "$_dam_c_reset" "$description" "$_dam_c_dim" "$_dam_c_reset"
+  _dam_table_mid
 }
 
 _dam_print_alias_rows() {
@@ -334,11 +426,17 @@ _dam_print_alias_rows() {
     _dam_parse_db_line "$line" || continue
     [ -n "$_dam_db_name" ] || continue
     if [ "$_dam_db_category" != "$last_category" ]; then
-      printf "\n%s%s aliases%s\n" "$(_dam_category_color "$_dam_db_category")" "$_dam_db_category" "$_dam_c_reset"
+      [ -z "$last_category" ] || _dam_table_mid
+      printf "%s│%s %-4s %s│%s %s%-18.18s%s %s│%s %-12s %s│%s %-9s %s│%s %-30s %s│%s %-28s %s│%s\n" \
+        "$_dam_c_dim" "$_dam_c_reset" "◆" "$_dam_c_dim" "$_dam_c_reset" \
+        "$(_dam_category_color "$_dam_db_category")" "$_dam_db_category aliases" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+        "" "$_dam_c_dim" "$_dam_c_reset" "" "$_dam_c_dim" "$_dam_c_reset" "" "$_dam_c_dim" "$_dam_c_reset" "" "$_dam_c_dim" "$_dam_c_reset"
+      _dam_table_mid
       last_category="$_dam_db_category"
     fi
     _dam_table_row "$_dam_db_name" "$_dam_db_category" "$_dam_db_kind" "$_dam_db_command" "$_dam_db_description"
   done < "$DAM_HOME/commands.db"
+  _dam_table_bottom
 }
 
 _dam_list() {
@@ -363,6 +461,7 @@ _dam_category() {
     [ "$_dam_db_category" = "$category" ] || continue
     _dam_table_row "$_dam_db_name" "$_dam_db_category" "$_dam_db_kind" "$_dam_db_command" "$_dam_db_description"
   done < "$DAM_HOME/commands.db"
+  _dam_table_bottom
 }
 
 _dam_search() {
@@ -380,6 +479,7 @@ _dam_search() {
     esac
   done < "$DAM_HOME/commands.db"
   [ "$found" = "1" ] || echo "No matches."
+  _dam_table_bottom
 }
 
 _dam_note_for_alias() {
@@ -514,8 +614,12 @@ _dam_daily_show() {
     echo "Checkbox UI: dam daily choose"
     return 0
   fi
-  printf "%s%-4s %-18s %-12s %s%s\n" "$_dam_c_red2" "No" "Alias" "Pack" "Subtitle" "$_dam_c_reset"
-  _dam_rule
+  _dam_daily_table_top
+  printf "%s│%s %-4s %s│%s %s%-18s%s %s│%s %-12s %s│%s %-42s %s│%s\n" \
+    "$_dam_c_dim" "$_dam_c_reset" "No" "$_dam_c_dim" "$_dam_c_reset" \
+    "$_dam_c_red2" "Alias" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+    "Pack" "$_dam_c_dim" "$_dam_c_reset" "Subtitle" "$_dam_c_dim" "$_dam_c_reset"
+  _dam_daily_table_mid
   local n=1 name note row category
   while IFS='|' read -r name note; do
     row="$(_dam_db_find "$name")"
@@ -525,13 +629,15 @@ _dam_daily_show() {
     else
       category="custom"
     fi
-    printf "%s%-4s%s %s%-18s%s %s%-12s%s %s\n" \
-      "$_dam_c_orange" "$n" "$_dam_c_reset" \
-      "$_dam_c_white" "$name" "$_dam_c_reset" \
-      "$(_dam_category_color "$category")" "$category" "$_dam_c_reset" \
-      "$note"
+    printf "%s│%s %s%-4s%s %s│%s %s%-18.18s%s %s│%s %s%-12.12s%s %s│%s %-42.42s %s│%s\n" \
+      "$_dam_c_dim" "$_dam_c_reset" "$_dam_c_orange" "$n" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+      "$_dam_c_white" "$name" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+      "$(_dam_category_color "$category")" "$category" "$_dam_c_reset" "$_dam_c_dim" "$_dam_c_reset" \
+      "$note" "$_dam_c_dim" "$_dam_c_reset"
+    _dam_daily_table_mid
     n=$((n + 1))
   done < "$DAM_HOME/daily.db"
+  _dam_daily_table_bottom
 }
 
 _dam_daily_run() {

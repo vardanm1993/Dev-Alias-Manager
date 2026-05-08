@@ -130,6 +130,7 @@ if [ "$CLEAN" = "1" ]; then clean_dam; fi
 mkdir -p "$CONFIG_DIR"
 
 if [ -f "$CONFIG_DIR/dam.sh" ]; then
+  dam_install_panel "Existing DAM install found" "A backup will be created. Your aliases, Daily Favorites, and config stay in place."
   cp "$CONFIG_DIR/dam.sh" "$CONFIG_DIR/dam.sh.backup.$(date +%F-%H%M%S)"
 fi
 
@@ -195,6 +196,34 @@ echo
 
 # shellcheck disable=SC1090
 source "$CONFIG_DIR/dam.sh"
+
+dam_install_conflict_preview() {
+  [ -t 0 ] || return 0
+
+  local names name existing found=0
+  names="$(awk '$1 == "_dam_add_full" && $2 !~ /^\$/ {print $2}' "$ROOT_DIR/core/dam.sh" | sort -u)"
+
+  for name in $names; do
+    [ -n "$(_dam_db_find "$name")" ] && continue
+    if command -v "$name" >/dev/null 2>&1; then
+      if [ "$found" = "0" ]; then
+        dam_install_panel "Alias name conflicts found" "Before setup saves aliases, you can skip/delete the DAM alias, replace/shadow the existing command, or rename it."
+        printf "${DAM_RED}${DAM_BOLD}%-18s${DAM_RESET} %s\n" "Alias" "Existing command"
+        echo "${DAM_DIM}────────────────────────────────────────────────────────────${DAM_RESET}"
+        found=1
+      fi
+      existing="$(command -V "$name" 2>/dev/null | head -1)"
+      printf "${DAM_ORANGE}%-18s${DAM_RESET} %s\n" "$name" "${existing:-already exists}"
+    fi
+  done
+
+  if [ "$found" = "1" ]; then
+    echo
+    echo "${DAM_GRAY}You will be asked what to do for each conflict while installing selected packs.${DAM_RESET}"
+  fi
+}
+
+dam_install_conflict_preview
 
 if [ "$RUN_WIZARD" = "1" ] && [ -t 0 ]; then
   dam wizard || true

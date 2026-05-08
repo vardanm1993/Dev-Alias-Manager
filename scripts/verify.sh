@@ -25,6 +25,10 @@ run_behavior_test() {
     out="$(say "%s|%s\n" "hello world" ok)"
     [ "$out" = "hello world|ok" ]
 
+    function takenalias { :; }
+    dam add takenalias system true "Should skip conflict" >/tmp/dam-verify-conflict.out
+    ! grep -q "^takenalias	" "$DAM_HOME/commands.db"
+
     dam preset fullstack >/dev/null
     [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 90 ]
 
