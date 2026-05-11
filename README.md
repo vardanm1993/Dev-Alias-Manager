@@ -95,6 +95,8 @@ dam daily choose          # choose many with checkbox UI
 dam daily search route    # search before adding
 dam daily add sup art     # add one or many aliases
 dam daily remove myroutes # remove one alias
+dam daily delete sup art  # delete one or many aliases
+dam daily delete 1 3      # delete by row number
 dam daily up myroutes     # move one row up
 dam daily down 2          # move row 2 down
 dam daily move sup 1      # move alias to position 1

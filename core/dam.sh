@@ -533,12 +533,36 @@ EOF_DAM_DAILY_WORDS
   return "$result"
 }
 
-_dam_daily_remove() {
-  local name="${1:-}"
-  [ -n "$name" ] || { echo "Usage: dam daily remove NAME"; return 1; }
+_dam_daily_remove_one() {
+  local name="$1"
   grep -v "^${name}|" "$DAM_HOME/daily.db" > "$DAM_HOME/daily.db.tmp" 2>/dev/null || true
   mv "$DAM_HOME/daily.db.tmp" "$DAM_HOME/daily.db"
   _dam_ok "Removed from Daily: $name"
+}
+
+_dam_daily_remove() {
+  local token name result=0
+  local -a names
+  [ "$#" -gt 0 ] || { echo "Usage: dam daily remove NAME_OR_ROW [NAME_OR_ROW ...]"; return 1; }
+  for token in "$@"; do
+    name="$(_dam_daily_resolve_name "$token")"
+    if [ -z "$name" ]; then
+      _dam_err "Daily row not found: $token"
+      result=1
+      continue
+    fi
+    if ! _dam_daily_contains "$name"; then
+      _dam_err "Daily item not found: $token"
+      result=1
+      continue
+    fi
+    names+=("$name")
+  done
+  for name in "${names[@]}"; do
+    _dam_daily_contains "$name" || continue
+    _dam_daily_remove_one "$name"
+  done
+  return "$result"
 }
 
 _dam_daily_count() {
@@ -742,14 +766,14 @@ _dam_daily_choose() {
 
 _dam_daily_menu() {
   case "$-" in *x*) set +x ;; esac
-  local choice query names name position
+  local choice query names name position remove_names
 
   while true; do
-    choice=""; query=""; names=""; name=""; position=""
+    choice=""; query=""; names=""; name=""; position=""; remove_names=""
     _dam_daily_show
     echo
-    printf "%s1%s Browse & add   %s2%s Quick add   %s3%s Search & add   %s4%s Run list   %s5%s Move up   %s6%s Move down   %s7%s Set position   %s8%s Clear list   %s0%s Exit\n" \
-      "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset" "$_dam_c_blue" "$_dam_c_reset" "$_dam_c_green" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_pink" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_muted" "$_dam_c_reset"
+    printf "%s1%s Browse & add   %s2%s Quick add   %s3%s Search & add   %s4%s Run list   %s5%s Delete   %s6%s Move up   %s7%s Move down   %s8%s Set position   %s9%s Clear list   %s0%s Exit\n" \
+      "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset" "$_dam_c_blue" "$_dam_c_reset" "$_dam_c_green" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_pink" "$_dam_c_reset" "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_yellow" "$_dam_c_reset" "$_dam_c_muted" "$_dam_c_reset"
     printf "%sChoose action%s %s›%s " "$_dam_c_red2" "$_dam_c_reset" "$_dam_c_orange" "$_dam_c_reset"
     read -r choice
     case "$choice" in
@@ -759,10 +783,11 @@ _dam_daily_menu() {
       2|quick|add) printf "Aliases to add (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
       3|search|find) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Aliases to add from results (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
       4|run) _dam_daily_run ;;
-      5|up) printf "Move up alias or row: "; read -r name; _dam_daily_up "$name" ;;
-      6|down) printf "Move down alias or row: "; read -r name; _dam_daily_down "$name" ;;
-      7|move|position) printf "Alias or row: "; read -r name; printf "New position: "; read -r position; _dam_daily_move "$name" "$position" ;;
-      8|clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
+      5|remove|rm|delete) printf "Aliases or rows to delete (space separated): "; read -r remove_names; _dam_daily_remove $remove_names ;;
+      6|up) printf "Move up alias or row: "; read -r name; _dam_daily_up "$name" ;;
+      7|down) printf "Move down alias or row: "; read -r name; _dam_daily_down "$name" ;;
+      8|move|position) printf "Alias or row: "; read -r name; printf "New position: "; read -r position; _dam_daily_move "$name" "$position" ;;
+      9|clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
       *) echo "Unknown choice." ;;
     esac
     echo
@@ -789,7 +814,7 @@ _dam_daily() {
     clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
     edit) "${EDITOR:-nano}" "$DAM_HOME/daily.db" ;;
     help) if _dam_tty; then _dam_daily_menu; else _dam_help_daily; fi ;;
-    *) echo "Usage: dam daily [choose|add|remove|up|down|move|run|search|clear|edit]" ;;
+    *) echo "Usage: dam daily [choose|add|remove|delete|up|down|move|run|search|clear|edit]" ;;
   esac
 }
 
@@ -821,7 +846,8 @@ _dam_help_daily() {
     "dam daily choose|list aliases with checkbox chooser" \
     "dam daily add NAME [NAME ...]|add one or many aliases" \
     "dam daily search WORD|search aliases before adding" \
-    "dam daily remove NAME|remove one alias" \
+    "dam daily remove NAME [NAME ...]|remove one or many aliases" \
+    "dam daily delete NAME_OR_ROW [NAME_OR_ROW ...]|delete by alias or row number" \
     "dam daily up NAME_OR_ROW|move item one row up" \
     "dam daily down NAME_OR_ROW|move item one row down" \
     "dam daily move NAME_OR_ROW POSITION|move item to exact position" \

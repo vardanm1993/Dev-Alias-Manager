@@ -53,6 +53,14 @@ run_behavior_test() {
     [ "$(_head="$(sed -n 1p "$DAM_HOME/daily.db")"; printf "%s" "${_head%%|*}")" = "sup" ]
     dam daily remove myroutes >/dev/null
     ! grep -q "^myroutes|" "$DAM_HOME/daily.db"
+    dam daily delete sup art >/dev/null
+    ! grep -q "^sup|" "$DAM_HOME/daily.db"
+    ! grep -q "^art|" "$DAM_HOME/daily.db"
+    dam daily add sup art myroutes >/dev/null
+    dam daily delete 1 2 >/dev/null
+    ! grep -q "^sup|" "$DAM_HOME/daily.db"
+    ! grep -q "^art|" "$DAM_HOME/daily.db"
+    grep -q "^myroutes|" "$DAM_HOME/daily.db"
   '
 }
 
