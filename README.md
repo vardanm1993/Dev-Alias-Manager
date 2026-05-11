@@ -92,6 +92,8 @@ Daily Favorites are only the aliases you choose. DAM does not install a default 
 ```bash
 dam daily                 # open Daily menu
 dam daily choose          # choose many with checkbox UI
+dam daily recommend pro   # add recommended Laravel/Sail/Linux favorites
+dam daily recommend sail  # add Sail-focused favorites
 dam daily search route    # search before adding
 dam daily add sup art     # add one or many aliases
 dam daily remove myroutes # remove one alias
@@ -118,7 +120,7 @@ The checkbox chooser shows every installed alias with its pack subtitle, for exa
 | Docker | Docker Compose and cleanup | `dcomp`, `dcu`, `dcub`, `dcd`, `dcl`, `dps`, `dprune` |
 | Git | Daily Git commands | `gst`, `ga`, `gaa`, `gcm`, `gcam`, `gp`, `gpf` |
 | GitHub | GitHub CLI helpers | `ghpr`, `ghprv`, `ghprs`, `ghruns`, `ghwatch` |
-| Linux | Terminal and system helpers | `cls`, `ll`, `lh`, `tree`, `ports`, `disk`, `size`, `mem`, `topmem`, `myip`, `servehere` |
+| Linux | Terminal and system helpers | `cls`, `ll`, `lh`, `ltree`, `ports`, `disk`, `dus`, `mem`, `topmem`, `myip`, `servehere` |
 | Security | Laravel project safety checks | `secenv`, `seckey`, `secaudit`, `secnpm`, `secperms` |
 | Workflow | Project start, stop, doctor, and quality flows | `doctor`, `start`, `stop`, `devflow`, `checkall` |
 

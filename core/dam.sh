@@ -710,6 +710,52 @@ _dam_daily_run() {
   done < "$DAM_HOME/daily.db"
 }
 
+
+_dam_daily_recommend() {
+  local pack="${1:-pro}" name result=0
+  local names=""
+  case "$pack" in
+    pro|recommended|"")
+      names="projectdoctor mode sup sdown slog sshell sart smig smfs myroutes clearcache tinker snrd snrb spest spint srcheck sstan sqa gst ll ltree ports disk dus mem topmem myip"
+      ;;
+    sail)
+      names="projectdoctor mode sup sdown srestart slog sshell sart smig smfs sseed snrd snrb spest spint srcheck sstan sqa"
+      ;;
+    laravel)
+      names="projectdoctor mode sart myroutes about clearcache tinker smig smfs sseed smkc smkm smkmig smkreq smktest"
+      ;;
+    makers|generators)
+      names="smkc smkci smkcr smkm smkmig smkf smks smkreq smkres smktest smktestu smkmid smkjob smkevent smklistener smkmail smkpolicy smkcommand"
+      ;;
+    linux|system)
+      names="cls ll lh ltree here path whichp psg ports disk dus mem cpu topmem topcpu myip servehere"
+      ;;
+    quality|qa)
+      names="spest spestf sphpunit spint spinttest srector srcheck sstan sqa"
+      ;;
+    *)
+      _dam_err "Unknown Daily recommendation: $pack"
+      echo "Available: pro, sail, laravel, makers, linux, quality"
+      return 1
+      ;;
+  esac
+
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    if _dam_alias_exists "$name"; then
+      _dam_daily_add_one "$name" >/dev/null || result=1
+    else
+      _dam_warn "Skipped missing alias: $name"
+      result=1
+    fi
+  done <<EOF_DAM_DAILY_RECOMMEND
+$(printf '%s\n' "$names" | tr '[:space:]' '\n')
+EOF_DAM_DAILY_RECOMMEND
+  _dam_ok "Recommended Daily list added: $pack"
+  _dam_daily_show
+  return "$result"
+}
+
 _dam_daily_choose_text() {
   _dam_list
   echo
@@ -795,6 +841,7 @@ _dam_daily_menu() {
       ""|0|q|quit|exit) break ;;
       1|browse|list|aliases) _dam_daily_list_and_add ;;
       choose|checkbox|select) _dam_daily_choose ;;
+      recommend|recommended|pro) printf "Recommended list [pro/sail/laravel/makers/linux/quality]: "; read -r names; _dam_daily_recommend "${names:-pro}" ;;
       2|quick|add) printf "Aliases to add (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
       3|search|find) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Aliases to add from results (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
       4|run) _dam_daily_run ;;
@@ -820,6 +867,7 @@ _dam_daily() {
     browse|aliases) _dam_daily_list_and_add ;;
     choose|select|1) _dam_daily_choose ;;
     add) _dam_daily_add "$@" ;;
+    recommend|recommended|preset) _dam_daily_recommend "$@" ;;
     remove|rm|delete) _dam_daily_remove "$@" ;;
     up) _dam_daily_up "$@" ;;
     down) _dam_daily_down "$@" ;;
@@ -829,7 +877,7 @@ _dam_daily() {
     clear) : > "$DAM_HOME/daily.db"; _dam_ok "Daily cleared." ;;
     edit) "${EDITOR:-nano}" "$DAM_HOME/daily.db" ;;
     help) if _dam_tty; then _dam_daily_menu; else _dam_help_daily; fi ;;
-    *) echo "Usage: dam daily [choose|add|remove|delete|up|down|move|run|search|clear|edit]" ;;
+    *) echo "Usage: dam daily [choose|recommend|add|remove|delete|up|down|move|run|search|clear|edit]" ;;
   esac
 }
 
@@ -958,10 +1006,10 @@ _dam_help() {
       ;;
     linux|ubuntu)
       _dam_help_table "Linux" "Small terminal and system helpers." \
-        "cls|clear terminal" "ll|detailed listing" "lh|human detailed listing" "tree|tree or find fallback" \
+        "cls|clear terminal" "ll|detailed listing" "lh|human detailed listing" "ltree|tree or find fallback" \
         "ports|show listening ports" "disk|show disk usage" "mem|show memory usage" "cpu|show top CPU view" \
         "topmem|top memory processes" "topcpu|top CPU processes" "myip|show local IPs" "path|print PATH entries" \
-        "psg WORD|search processes" "size PATH|show path size" "servehere PORT|static server here" \
+        "psg WORD|search processes" "dus PATH|show path size" "servehere PORT|static server here" \
         "update|apt update and upgrade" "cleanup|apt autoremove and autoclean"
       ;;
     security|audit)
@@ -998,14 +1046,14 @@ _dam_preset_linux() {
   _dam_add_full ll linux raw 'ls -alF "$@"' 'Detailed listing'
   _dam_add_full la linux raw 'ls -A "$@"' 'List hidden entries'
   _dam_add_full lh linux raw 'ls -lah "$@"' 'Human detailed listing'
-  _dam_add_full tree linux raw 'if command -v tree >/dev/null 2>&1; then tree -L "${1:-2}"; else find . -maxdepth "${1:-2}" -print; fi' 'Directory tree with fallback'
+  _dam_add_full ltree linux raw 'if command -v tree >/dev/null 2>&1; then tree -L "${1:-2}"; else find . -maxdepth "${1:-2}" -print; fi' 'Directory tree with fallback'
   _dam_add_full here linux system 'pwd' 'Print current directory'
   _dam_add_full path linux raw 'printf "%s\\n" "$PATH" | tr ":" "\\n"' 'Print PATH entries'
   _dam_add_full whichp linux raw 'command -v "$@"' 'Find executable path'
   _dam_add_full psg linux raw 'ps aux | grep -i "${1:-}" | grep -v grep' 'Search running processes'
   _dam_add_full ports linux raw 'if command -v lsof >/dev/null 2>&1; then lsof -i -P -n | grep LISTEN; else ss -tulpn; fi' 'Show listening ports'
   _dam_add_full disk linux system 'df -h' 'Show disk usage'
-  _dam_add_full size linux raw 'du -sh "${1:-.}"' 'Show path size'
+  _dam_add_full dus linux raw 'du -sh "${1:-.}"' 'Show path size'
   _dam_add_full mem linux system 'free -h' 'Show memory usage'
   _dam_add_full cpu linux raw 'top -bn1 | head -20' 'Show CPU and process snapshot'
   _dam_add_full topmem linux raw 'ps aux --sort=-%mem | head -10' 'Top memory processes'

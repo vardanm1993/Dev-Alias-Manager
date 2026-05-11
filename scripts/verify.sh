@@ -37,6 +37,10 @@ run_behavior_test() {
     grep -q "^snpm	" "$DAM_HOME/commands.db"
     grep -q "^smig	" "$DAM_HOME/commands.db"
     grep -q "^sqa	" "$DAM_HOME/commands.db"
+    grep -q "^ltree	" "$DAM_HOME/commands.db"
+    grep -q "^dus	" "$DAM_HOME/commands.db"
+    ! grep -q "^tree	" "$DAM_HOME/commands.db"
+    ! grep -q "^size	" "$DAM_HOME/commands.db"
 
     gst >/tmp/dam-verify-gst.out 2>&1 || true
     ! grep -q "git status -sb not found" /tmp/dam-verify-gst.out
@@ -67,6 +71,12 @@ run_behavior_test() {
     ! grep -q "^sup|" "$DAM_HOME/daily.db"
     ! grep -q "^art|" "$DAM_HOME/daily.db"
     grep -q "^myroutes|" "$DAM_HOME/daily.db"
+    : > "$DAM_HOME/daily.db"
+    dam daily recommend pro >/tmp/dam-verify-daily-recommend.out
+    grep -q "^sup|" "$DAM_HOME/daily.db"
+    grep -q "^smig|" "$DAM_HOME/daily.db"
+    grep -q "^ltree|" "$DAM_HOME/daily.db"
+    grep -q "^dus|" "$DAM_HOME/daily.db"
   '
 }
 
