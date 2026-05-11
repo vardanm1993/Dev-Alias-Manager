@@ -958,8 +958,11 @@ _dam_help() {
       ;;
     linux|ubuntu)
       _dam_help_table "Linux" "Small terminal and system helpers." \
-        "cls|clear terminal" "update|apt update and upgrade" "cleanup|apt autoremove and autoclean" \
-        "ports|show listening ports" "disk|show disk usage" "mem|show memory usage"
+        "cls|clear terminal" "ll|detailed listing" "lh|human detailed listing" "tree|tree or find fallback" \
+        "ports|show listening ports" "disk|show disk usage" "mem|show memory usage" "cpu|show top CPU view" \
+        "topmem|top memory processes" "topcpu|top CPU processes" "myip|show local IPs" "path|print PATH entries" \
+        "psg WORD|search processes" "size PATH|show path size" "servehere PORT|static server here" \
+        "update|apt update and upgrade" "cleanup|apt autoremove and autoclean"
       ;;
     security|audit)
       _dam_help_table "Security" "Checks for Laravel project safety." \
@@ -986,16 +989,31 @@ _dam_packs() {
     "linux|terminal and Ubuntu helpers" "git|Git aliases" "github|GitHub CLI aliases" \
     "docker|Docker Compose aliases" "php|PHP and Composer aliases" "frontend|npm/Vite aliases" \
     "laravel|Artisan/Laravel workflow" "sail|Laravel Sail aliases" "quality|Pest/Pint/Rector/PHPStan" \
-    "security|audit and env checks" "workflow|project start/check aliases" "fullstack|all-in-one Laravel/PHP pack"
+    "security|audit and env checks" "workflow|project start/check aliases" "fullstack|all-in-one Laravel/PHP pack" \
+    "pro|fullstack plus GitHub CLI and expanded Linux helpers"
 }
 
 _dam_preset_linux() {
   _dam_add_full cls linux system 'clear' 'Clear terminal'
+  _dam_add_full ll linux raw 'ls -alF "$@"' 'Detailed listing'
+  _dam_add_full la linux raw 'ls -A "$@"' 'List hidden entries'
+  _dam_add_full lh linux raw 'ls -lah "$@"' 'Human detailed listing'
+  _dam_add_full tree linux raw 'if command -v tree >/dev/null 2>&1; then tree -L "${1:-2}"; else find . -maxdepth "${1:-2}" -print; fi' 'Directory tree with fallback'
+  _dam_add_full here linux system 'pwd' 'Print current directory'
+  _dam_add_full path linux raw 'printf "%s\\n" "$PATH" | tr ":" "\\n"' 'Print PATH entries'
+  _dam_add_full whichp linux raw 'command -v "$@"' 'Find executable path'
+  _dam_add_full psg linux raw 'ps aux | grep -i "${1:-}" | grep -v grep' 'Search running processes'
+  _dam_add_full ports linux raw 'if command -v lsof >/dev/null 2>&1; then lsof -i -P -n | grep LISTEN; else ss -tulpn; fi' 'Show listening ports'
+  _dam_add_full disk linux system 'df -h' 'Show disk usage'
+  _dam_add_full size linux raw 'du -sh "${1:-.}"' 'Show path size'
+  _dam_add_full mem linux system 'free -h' 'Show memory usage'
+  _dam_add_full cpu linux raw 'top -bn1 | head -20' 'Show CPU and process snapshot'
+  _dam_add_full topmem linux raw 'ps aux --sort=-%mem | head -10' 'Top memory processes'
+  _dam_add_full topcpu linux raw 'ps aux --sort=-%cpu | head -10' 'Top CPU processes'
+  _dam_add_full myip linux raw 'hostname -I 2>/dev/null || ip addr show' 'Show local IP addresses'
+  _dam_add_full servehere linux raw 'python3 -m http.server "${1:-8000}"' 'Serve current directory'
   _dam_add_full update linux raw 'sudo apt update && sudo apt upgrade -y' 'Update Ubuntu packages'
   _dam_add_full cleanup linux raw 'sudo apt autoremove -y && sudo apt autoclean' 'Clean apt packages'
-  _dam_add_full ports linux raw 'lsof -i -P -n | grep LISTEN' 'Show listening ports'
-  _dam_add_full disk linux system 'df -h' 'Show disk usage'
-  _dam_add_full mem linux system 'free -h' 'Show memory usage'
 }
 
 _dam_preset_git() {
@@ -1207,6 +1225,11 @@ _dam_preset_fullstack() {
   _dam_preset_workflow
 }
 
+_dam_preset_pro() {
+  _dam_preset_fullstack
+  _dam_preset_github
+}
+
 _dam_preset() {
   case "${1:-}" in
     linux|ubuntu|system) _dam_preset_linux ;;
@@ -1220,6 +1243,7 @@ _dam_preset() {
     quality|qa) _dam_preset_quality ;;
     security|audit) _dam_preset_security ;;
     workflow|project) _dam_preset_workflow ;;
+    pro|sailpro|laravel-pro) _dam_preset_pro ;;
     fullstack|all|"") _dam_preset_fullstack ;;
     *) _dam_err "Unknown pack: ${1:-}"; _dam_packs; return 1 ;;
   esac

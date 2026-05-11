@@ -118,7 +118,7 @@ The checkbox chooser shows every installed alias with its pack subtitle, for exa
 | Docker | Docker Compose and cleanup | `dcomp`, `dcu`, `dcub`, `dcd`, `dcl`, `dps`, `dprune` |
 | Git | Daily Git commands | `gst`, `ga`, `gaa`, `gcm`, `gcam`, `gp`, `gpf` |
 | GitHub | GitHub CLI helpers | `ghpr`, `ghprv`, `ghprs`, `ghruns`, `ghwatch` |
-| Linux | Terminal and Ubuntu helpers | `cls`, `update`, `cleanup`, `ports`, `disk`, `mem` |
+| Linux | Terminal and system helpers | `cls`, `ll`, `lh`, `tree`, `ports`, `disk`, `size`, `mem`, `topmem`, `myip`, `servehere` |
 | Security | Laravel project safety checks | `secenv`, `seckey`, `secaudit`, `secnpm`, `secperms` |
 | Workflow | Project start, stop, doctor, and quality flows | `doctor`, `start`, `stop`, `devflow`, `checkall` |
 
@@ -129,6 +129,7 @@ dam preset laravel
 dam preset sail
 dam preset docker
 dam preset fullstack
+dam preset pro        # fullstack + GitHub CLI + expanded Linux helpers
 ```
 
 ## Laravel And Sail Examples
