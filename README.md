@@ -111,7 +111,7 @@ The checkbox chooser shows every installed alias with its pack subtitle, for exa
 | Pack | What It Covers | Examples |
 | --- | --- | --- |
 | Laravel | Artisan, routes, database, queues, logs, generators, Sail install | `art`, `sailinstall`, `myroutes`, `dbmigrate`, `mkc`, `mkm`, `logs` |
-| Sail | Sail lifecycle, Artisan, Composer, npm, and quality tools through Sail | `sup`, `sdown`, `sart`, `smig`, `snpm`, `spest`, `spint`, `srector`, `sstan`, `sqa` |
+| Sail | Sail lifecycle, Artisan, generators, Composer, npm, and quality tools through Sail | `sup`, `sdown`, `sart`, `smig`, `smkc`, `smkm`, `snpm`, `spest`, `spint`, `srector`, `sqa` |
 | Frontend | npm and Vite workflows | `ni`, `nrd`, `nrb`, `nrt`, `nrl`, `npreview` |
 | PHP / Composer | PHP and Composer workflows | `phpv`, `phpm`, `ci`, `cu`, `creq`, `caudit`, `coutdated` |
 | Quality | Pest, Pint, Rector, PHPStan | `pint`, `pest`, `rcheck`, `rfix`, `stan`, `qa` |
@@ -138,6 +138,9 @@ sailinstall          # php artisan sail:install, or Sail artisan if Sail exists
 sup                  # ./vendor/bin/sail up -d
 sart migrate         # ./vendor/bin/sail artisan migrate
 smig                 # ./vendor/bin/sail artisan migrate
+smkc UserController  # ./vendor/bin/sail artisan make:controller UserController
+smkm User            # ./vendor/bin/sail artisan make:model User
+smkmig create_posts  # ./vendor/bin/sail artisan make:migration create_posts
 scomposer install    # ./vendor/bin/sail composer install
 snpm run dev         # ./vendor/bin/sail npm run dev
 spint                # ./vendor/bin/sail php vendor/bin/pint

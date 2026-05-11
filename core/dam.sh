@@ -921,6 +921,7 @@ _dam_help() {
         "sup|sail up -d" "sdown|sail down" "srestart|sail restart" "sshell|sail shell" \
         "sart <cmd>|sail artisan <cmd>" "smig|sail artisan migrate" "smfs|sail artisan migrate:fresh --seed" \
         "scomposer <cmd>|sail composer <cmd>" "snpm <cmd>|sail npm <cmd>" "snrd|sail npm run dev" \
+        "smkc Name|sail artisan make:controller Name" "smkm Name|sail artisan make:model Name" "smkmig name|sail artisan make:migration name" \
         "spest|sail php vendor/bin/pest" "spint|sail php vendor/bin/pint" "srector|sail php vendor/bin/rector process" \
         "sstan|sail php vendor/bin/phpstan analyse" "sqa|quality pipeline through Sail"
       ;;
@@ -1144,6 +1145,24 @@ _dam_preset_sail() {
   _dam_add_full sstan sail raw '_dam_sail_vendor_command phpstan analyse' 'Run PHPStan through Sail'
   _dam_add_full stest sail raw '_dam_sail_vendor_command pest' 'Run tests through Sail'
   _dam_add_full sqa sail raw 'spint && srcheck && sstan && spest && { [ -f package.json ] && snpm run typecheck --if-present && snpm run build --if-present || true; }' 'Full quality pipeline through Sail'
+  _dam_add_full smkc sail raw '_dam_sail_command artisan make:controller' 'Make controller through Sail'
+  _dam_add_full smkci sail raw '_dam_sail_command artisan make:controller --invokable' 'Make invokable controller through Sail'
+  _dam_add_full smkcr sail raw '_dam_sail_command artisan make:controller --resource' 'Make resource controller through Sail'
+  _dam_add_full smkm sail raw '_dam_sail_command artisan make:model' 'Make model through Sail'
+  _dam_add_full smkmig sail raw '_dam_sail_command artisan make:migration' 'Make migration through Sail'
+  _dam_add_full smkf sail raw '_dam_sail_command artisan make:factory' 'Make factory through Sail'
+  _dam_add_full smks sail raw '_dam_sail_command artisan make:seeder' 'Make seeder through Sail'
+  _dam_add_full smkreq sail raw '_dam_sail_command artisan make:request' 'Make form request through Sail'
+  _dam_add_full smkres sail raw '_dam_sail_command artisan make:resource' 'Make API resource through Sail'
+  _dam_add_full smktest sail raw '_dam_sail_command artisan make:test' 'Make feature test through Sail'
+  _dam_add_full smktestu sail raw '_dam_sail_command artisan make:test --unit' 'Make unit test through Sail'
+  _dam_add_full smkmid sail raw '_dam_sail_command artisan make:middleware' 'Make middleware through Sail'
+  _dam_add_full smkjob sail raw '_dam_sail_command artisan make:job' 'Make queued job through Sail'
+  _dam_add_full smkevent sail raw '_dam_sail_command artisan make:event' 'Make event through Sail'
+  _dam_add_full smklistener sail raw '_dam_sail_command artisan make:listener' 'Make listener through Sail'
+  _dam_add_full smkmail sail raw '_dam_sail_command artisan make:mail' 'Make mailable through Sail'
+  _dam_add_full smkpolicy sail raw '_dam_sail_command artisan make:policy' 'Make policy through Sail'
+  _dam_add_full smkcommand sail raw '_dam_sail_command artisan make:command' 'Make Artisan command through Sail'
 }
 
 _dam_preset_quality() {

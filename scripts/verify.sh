@@ -30,7 +30,7 @@ run_behavior_test() {
     ! grep -q "^takenalias	" "$DAM_HOME/commands.db"
 
     dam preset fullstack >/dev/null
-    [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 110 ]
+    [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 125 ]
     grep -q "^srector	" "$DAM_HOME/commands.db"
     grep -q "^spint	" "$DAM_HOME/commands.db"
     grep -q "^spest	" "$DAM_HOME/commands.db"
@@ -81,7 +81,7 @@ custom_home="$tmp_home/custom-dam"
 HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt >/tmp/dam-verify-install.out
 grep -qF "$custom_home/dam.sh" "$tmp_home/.bashrc"
 [ -f "$custom_home/dam.sh" ]
-[ "$(wc -l < "$custom_home/commands.db")" -ge 110 ]
+[ "$(wc -l < "$custom_home/commands.db")" -ge 125 ]
 
 printf "custom|Keep me\n" > "$custom_home/daily.db"
 HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt </dev/null >/tmp/dam-verify-reinstall-keep.out
