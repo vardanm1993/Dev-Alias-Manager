@@ -37,6 +37,10 @@ run_behavior_test() {
     grep -q "^snpm	" "$DAM_HOME/commands.db"
     grep -q "^smig	" "$DAM_HOME/commands.db"
     grep -q "^sqa	" "$DAM_HOME/commands.db"
+    grep -q "^sdownv	" "$DAM_HOME/commands.db"
+    grep -q "^sroutes	" "$DAM_HOME/commands.db"
+    grep -q "^sabout	" "$DAM_HOME/commands.db"
+    grep -q "^sclearcache	" "$DAM_HOME/commands.db"
     grep -q "^ltree	" "$DAM_HOME/commands.db"
     grep -q "^dus	" "$DAM_HOME/commands.db"
     ! grep -q "^tree	" "$DAM_HOME/commands.db"
@@ -72,11 +76,16 @@ run_behavior_test() {
     ! grep -q "^art|" "$DAM_HOME/daily.db"
     grep -q "^myroutes|" "$DAM_HOME/daily.db"
     : > "$DAM_HOME/daily.db"
-    dam daily recommend pro >/tmp/dam-verify-daily-recommend.out
+    dam daily recommend >/tmp/dam-verify-daily-recommend.out
+    grep -q "^cls|" "$DAM_HOME/daily.db"
+    grep -q "^ll|" "$DAM_HOME/daily.db"
     grep -q "^sup|" "$DAM_HOME/daily.db"
-    grep -q "^smig|" "$DAM_HOME/daily.db"
-    grep -q "^ltree|" "$DAM_HOME/daily.db"
-    grep -q "^dus|" "$DAM_HOME/daily.db"
+    grep -q "^sdownv|" "$DAM_HOME/daily.db"
+    grep -q "^sroutes|" "$DAM_HOME/daily.db"
+    grep -q "^sclearcache|" "$DAM_HOME/daily.db"
+    grep -q "^spint|" "$DAM_HOME/daily.db"
+    grep -q "^sqa|" "$DAM_HOME/daily.db"
+    grep -q "^gst|" "$DAM_HOME/daily.db"
   '
 }
 

@@ -712,33 +712,8 @@ _dam_daily_run() {
 
 
 _dam_daily_recommend() {
-  local pack="${1:-pro}" name result=0
-  local names=""
-  case "$pack" in
-    pro|recommended|"")
-      names="projectdoctor mode sup sdown slog sshell sart smig smfs myroutes clearcache tinker snrd snrb spest spint srcheck sstan sqa gst ll ltree ports disk dus mem topmem myip"
-      ;;
-    sail)
-      names="projectdoctor mode sup sdown srestart slog sshell sart smig smfs sseed snrd snrb spest spint srcheck sstan sqa"
-      ;;
-    laravel)
-      names="projectdoctor mode sart myroutes about clearcache tinker smig smfs sseed smkc smkm smkmig smkreq smktest"
-      ;;
-    makers|generators)
-      names="smkc smkci smkcr smkm smkmig smkf smks smkreq smkres smktest smktestu smkmid smkjob smkevent smklistener smkmail smkpolicy smkcommand"
-      ;;
-    linux|system)
-      names="cls ll lh ltree here path whichp psg ports disk dus mem cpu topmem topcpu myip servehere"
-      ;;
-    quality|qa)
-      names="spest spestf sphpunit spint spinttest srector srcheck sstan sqa"
-      ;;
-    *)
-      _dam_err "Unknown Daily recommendation: $pack"
-      echo "Available: pro, sail, laravel, makers, linux, quality"
-      return 1
-      ;;
-  esac
+  local name result=0
+  local names="cls ll lh ltree ports disk mem sup sdown sdownv srestart slog sshell sps sart sroutes sabout sclearcache stinker smig smfs sseed snrd snrb spint spinttest srcheck srector sstan spest sqa gst ga gcm gp"
 
   while IFS= read -r name; do
     [ -n "$name" ] || continue
@@ -751,7 +726,7 @@ _dam_daily_recommend() {
   done <<EOF_DAM_DAILY_RECOMMEND
 $(printf '%s\n' "$names" | tr '[:space:]' '\n')
 EOF_DAM_DAILY_RECOMMEND
-  _dam_ok "Recommended Daily list added: $pack"
+  _dam_ok "Recommended Daily list added."
   _dam_daily_show
   return "$result"
 }
@@ -841,7 +816,7 @@ _dam_daily_menu() {
       ""|0|q|quit|exit) break ;;
       1|browse|list|aliases) _dam_daily_list_and_add ;;
       choose|checkbox|select) _dam_daily_choose ;;
-      recommend|recommended|pro) printf "Recommended list [pro/sail/laravel/makers/linux/quality]: "; read -r names; _dam_daily_recommend "${names:-pro}" ;;
+      recommend|recommended) _dam_daily_recommend ;;
       2|quick|add) printf "Aliases to add (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
       3|search|find) printf "Search: "; read -r query; _dam_search "$query"; echo; printf "Aliases to add from results (space separated): "; read -r names; _dam_daily_add_line "$names" ;;
       4|run) _dam_daily_run ;;
@@ -867,7 +842,7 @@ _dam_daily() {
     browse|aliases) _dam_daily_list_and_add ;;
     choose|select|1) _dam_daily_choose ;;
     add) _dam_daily_add "$@" ;;
-    recommend|recommended|preset) _dam_daily_recommend "$@" ;;
+    recommend|recommended|preset) _dam_daily_recommend ;;
     remove|rm|delete) _dam_daily_remove "$@" ;;
     up) _dam_daily_up "$@" ;;
     down) _dam_daily_down "$@" ;;
@@ -1175,6 +1150,7 @@ _dam_preset_sail() {
   _dam_add_full supb sail raw '_dam_sail_command up -d --build' 'Start Sail with build'
   _dam_add_full sbuild sail raw '_dam_sail_command build --no-cache' 'Build Sail images'
   _dam_add_full sdown sail raw '_dam_sail_command down' 'Stop Sail'
+  _dam_add_full sdownv sail raw '_dam_sail_command down -v' 'Stop Sail and remove volumes'
   _dam_add_full sstop sail raw '_dam_sail_command stop' 'Stop Sail services'
   _dam_add_full srestart sail raw '_dam_sail_command restart' 'Restart Sail services'
   _dam_add_full sps sail raw '_dam_sail_command ps' 'Sail ps'
@@ -1186,6 +1162,9 @@ _dam_preset_sail() {
   _dam_add_full smysql sail raw '_dam_sail_command mysql' 'Open Sail MySQL'
   _dam_add_full sredis sail raw '_dam_sail_command redis' 'Open Sail Redis'
   _dam_add_full sart sail raw '_dam_sail_command artisan' 'Run Artisan through Sail'
+  _dam_add_full sroutes sail raw '_dam_sail_command artisan route:list' 'Show routes through Sail'
+  _dam_add_full sabout sail raw '_dam_sail_command artisan about' 'Show app info through Sail'
+  _dam_add_full sclearcache sail raw '_dam_sail_command artisan optimize:clear' 'Clear caches through Sail'
   _dam_add_full stinker sail raw '_dam_sail_command artisan tinker' 'Open Tinker through Sail'
   _dam_add_full smig sail raw '_dam_sail_command artisan migrate' 'Run migrations through Sail'
   _dam_add_full smfs sail raw '_dam_sail_command artisan migrate:fresh --seed' 'Fresh DB with seed through Sail'

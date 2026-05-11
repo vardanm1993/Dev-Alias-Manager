@@ -92,8 +92,7 @@ Daily Favorites are only the aliases you choose. DAM does not install a default 
 ```bash
 dam daily                 # open Daily menu
 dam daily choose          # choose many with checkbox UI
-dam daily recommend pro   # add recommended Laravel/Sail/Linux favorites
-dam daily recommend sail  # add Sail-focused favorites
+dam daily recommend       # add recommended Laravel/Sail/Linux favorites
 dam daily search route    # search before adding
 dam daily add sup art     # add one or many aliases
 dam daily remove myroutes # remove one alias
