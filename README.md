@@ -111,7 +111,7 @@ The checkbox chooser shows every installed alias with its pack subtitle, for exa
 | Pack | What It Covers | Examples |
 | --- | --- | --- |
 | Laravel | Artisan, routes, database, queues, logs, generators, Sail install | `art`, `sailinstall`, `myroutes`, `dbmigrate`, `mkc`, `mkm`, `logs` |
-| Sail | Sail lifecycle and command passthrough | `sup`, `supb`, `sdown`, `slog`, `sshapp`, `sart`, `scomposer` |
+| Sail | Sail lifecycle, Artisan, Composer, npm, and quality tools through Sail | `sup`, `sdown`, `sart`, `smig`, `snpm`, `spest`, `spint`, `srector`, `sstan`, `sqa` |
 | Frontend | npm and Vite workflows | `ni`, `nrd`, `nrb`, `nrt`, `nrl`, `npreview` |
 | PHP / Composer | PHP and Composer workflows | `phpv`, `phpm`, `ci`, `cu`, `creq`, `caudit`, `coutdated` |
 | Quality | Pest, Pint, Rector, PHPStan | `pint`, `pest`, `rcheck`, `rfix`, `stan`, `qa` |
@@ -137,7 +137,12 @@ dam preset fullstack
 sailinstall          # php artisan sail:install, or Sail artisan if Sail exists
 sup                  # ./vendor/bin/sail up -d
 sart migrate         # ./vendor/bin/sail artisan migrate
+smig                 # ./vendor/bin/sail artisan migrate
 scomposer install    # ./vendor/bin/sail composer install
+snpm run dev         # ./vendor/bin/sail npm run dev
+spint                # ./vendor/bin/sail php vendor/bin/pint
+srector              # ./vendor/bin/sail php vendor/bin/rector process
+sqa                  # quality pipeline through Sail
 myroutes             # route:list
 dbfresh              # migrate:fresh --seed
 logs                 # tail storage/logs/laravel.log

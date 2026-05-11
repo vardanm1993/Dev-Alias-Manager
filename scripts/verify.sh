@@ -30,7 +30,13 @@ run_behavior_test() {
     ! grep -q "^takenalias	" "$DAM_HOME/commands.db"
 
     dam preset fullstack >/dev/null
-    [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 90 ]
+    [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 110 ]
+    grep -q "^srector	" "$DAM_HOME/commands.db"
+    grep -q "^spint	" "$DAM_HOME/commands.db"
+    grep -q "^spest	" "$DAM_HOME/commands.db"
+    grep -q "^snpm	" "$DAM_HOME/commands.db"
+    grep -q "^smig	" "$DAM_HOME/commands.db"
+    grep -q "^sqa	" "$DAM_HOME/commands.db"
 
     gst >/tmp/dam-verify-gst.out 2>&1 || true
     ! grep -q "git status -sb not found" /tmp/dam-verify-gst.out
@@ -75,7 +81,7 @@ custom_home="$tmp_home/custom-dam"
 HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt >/tmp/dam-verify-install.out
 grep -qF "$custom_home/dam.sh" "$tmp_home/.bashrc"
 [ -f "$custom_home/dam.sh" ]
-[ "$(wc -l < "$custom_home/commands.db")" -ge 90 ]
+[ "$(wc -l < "$custom_home/commands.db")" -ge 110 ]
 
 printf "custom|Keep me\n" > "$custom_home/daily.db"
 HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt </dev/null >/tmp/dam-verify-reinstall-keep.out

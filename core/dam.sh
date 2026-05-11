@@ -101,6 +101,21 @@ _dam_sail_command() {
   fi
 }
 
+_dam_sail_vendor_command() {
+  local bin_name="$1"
+  shift
+  local bin_path="$DAM_VENDOR_BIN/$bin_name"
+  if [ ! -f "$DAM_SAIL_BIN" ]; then
+    _dam_missing "Sail not found. Install it with: php artisan sail:install, or edit DAM_SAIL_BIN with: dam config"
+    return 1
+  fi
+  if [ ! -f "$bin_path" ]; then
+    _dam_missing "$bin_name not found in $DAM_VENDOR_BIN. Install it in the project or edit paths with: dam config"
+    return 1
+  fi
+  "$DAM_SAIL_BIN" php "$bin_path" "$@"
+}
+
 dam_mode() {
   if _dam_has_sail; then
     echo "sail"
@@ -902,9 +917,12 @@ _dam_help() {
         "mkc UserController|make controller" "mkm User|make model" "mkmig create_posts_table|make migration"
       ;;
     sail)
-      _dam_help_table "Laravel Sail" "Sail lifecycle and container helpers." \
-        "sup|sail up -d" "supb|sail up -d --build" "sdown|sail down" "sps|sail ps" \
-        "slog|sail logs -f" "sshapp|sail shell" "snrd|sail npm run dev"
+      _dam_help_table "Laravel Sail" "Sail lifecycle, Artisan, frontend, and quality commands." \
+        "sup|sail up -d" "sdown|sail down" "srestart|sail restart" "sshell|sail shell" \
+        "sart <cmd>|sail artisan <cmd>" "smig|sail artisan migrate" "smfs|sail artisan migrate:fresh --seed" \
+        "scomposer <cmd>|sail composer <cmd>" "snpm <cmd>|sail npm <cmd>" "snrd|sail npm run dev" \
+        "spest|sail php vendor/bin/pest" "spint|sail php vendor/bin/pint" "srector|sail php vendor/bin/rector process" \
+        "sstan|sail php vendor/bin/phpstan analyse" "sqa|quality pipeline through Sail"
       ;;
     quality|qa)
       _dam_help_table "Quality" "Common project checks." \
@@ -1085,22 +1103,47 @@ _dam_preset_laravel() {
 }
 
 _dam_preset_sail() {
-  _dam_add_full sup sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" up -d || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Start Sail detached'
-  _dam_add_full devup sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" up -d || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Start Sail'
-  _dam_add_full supb sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" up -d --build || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Start Sail with build'
-  _dam_add_full sdown sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" down || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Stop Sail'
-  _dam_add_full sstop sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" stop || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Stop Sail services'
-  _dam_add_full srestart sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" down && "$DAM_SAIL_BIN" up -d || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Restart Sail'
-  _dam_add_full sps sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" ps || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Sail ps'
-  _dam_add_full slog sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" logs -f || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Sail logs'
-  _dam_add_full sshapp sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" shell || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Open Sail shell'
-  _dam_add_full sroot sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" root-shell || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Open Sail root shell'
+  _dam_add_full sup sail raw '_dam_sail_command up -d' 'Start Sail detached'
+  _dam_add_full devup sail raw '_dam_sail_command up -d' 'Start Sail'
+  _dam_add_full supb sail raw '_dam_sail_command up -d --build' 'Start Sail with build'
+  _dam_add_full sbuild sail raw '_dam_sail_command build --no-cache' 'Build Sail images'
+  _dam_add_full sdown sail raw '_dam_sail_command down' 'Stop Sail'
+  _dam_add_full sstop sail raw '_dam_sail_command stop' 'Stop Sail services'
+  _dam_add_full srestart sail raw '_dam_sail_command restart' 'Restart Sail services'
+  _dam_add_full sps sail raw '_dam_sail_command ps' 'Sail ps'
+  _dam_add_full slog sail raw '_dam_sail_command logs -f' 'Sail logs'
+  _dam_add_full slogs sail raw '_dam_sail_command logs -f' 'Sail logs'
+  _dam_add_full sshapp sail raw '_dam_sail_command shell' 'Open Sail shell'
+  _dam_add_full sshell sail raw '_dam_sail_command shell' 'Open Sail shell'
+  _dam_add_full sroot sail raw '_dam_sail_command root-shell' 'Open Sail root shell'
+  _dam_add_full smysql sail raw '_dam_sail_command mysql' 'Open Sail MySQL'
+  _dam_add_full sredis sail raw '_dam_sail_command redis' 'Open Sail Redis'
   _dam_add_full sart sail raw '_dam_sail_command artisan' 'Run Artisan through Sail'
+  _dam_add_full stinker sail raw '_dam_sail_command artisan tinker' 'Open Tinker through Sail'
+  _dam_add_full smig sail raw '_dam_sail_command artisan migrate' 'Run migrations through Sail'
+  _dam_add_full smfs sail raw '_dam_sail_command artisan migrate:fresh --seed' 'Fresh DB with seed through Sail'
+  _dam_add_full sseed sail raw '_dam_sail_command artisan db:seed' 'Run seeders through Sail'
   _dam_add_full sphp sail raw '_dam_sail_command php' 'Run PHP through Sail'
   _dam_add_full scomposer sail raw '_dam_sail_command composer' 'Run Composer through Sail'
-  _dam_add_full snrd sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" npm run dev || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Run npm dev through Sail'
-  _dam_add_full snrb sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" npm run build || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Run npm build through Sail'
-  _dam_add_full stest sail raw '[ -f "$DAM_SAIL_BIN" ] && "$DAM_SAIL_BIN" test || echo "Sail not found. Edit DAM_SAIL_BIN with: dam config"' 'Run tests through Sail'
+  _dam_add_full sci sail raw '_dam_sail_command composer install' 'Composer install through Sail'
+  _dam_add_full scu sail raw '_dam_sail_command composer update' 'Composer update through Sail'
+  _dam_add_full snpm sail raw '_dam_sail_command npm' 'Run npm through Sail'
+  _dam_add_full snpx sail raw '_dam_sail_command npx' 'Run npx through Sail'
+  _dam_add_full syarn sail raw '_dam_sail_command yarn' 'Run Yarn through Sail'
+  _dam_add_full snrd sail raw '_dam_sail_command npm run dev' 'Run npm dev through Sail'
+  _dam_add_full snrb sail raw '_dam_sail_command npm run build' 'Run npm build through Sail'
+  _dam_add_full snrt sail raw '_dam_sail_command npm run typecheck' 'Run typecheck through Sail'
+  _dam_add_full snrl sail raw '_dam_sail_command npm run lint' 'Run lint through Sail'
+  _dam_add_full spest sail raw '_dam_sail_vendor_command pest' 'Run Pest through Sail'
+  _dam_add_full spestf sail raw '_dam_sail_vendor_command pest --filter' 'Run filtered Pest through Sail'
+  _dam_add_full sphpunit sail raw '_dam_sail_vendor_command phpunit' 'Run PHPUnit through Sail'
+  _dam_add_full spint sail raw '_dam_sail_vendor_command pint' 'Run Pint through Sail'
+  _dam_add_full spinttest sail raw '_dam_sail_vendor_command pint --test' 'Check Pint through Sail'
+  _dam_add_full srector sail raw '_dam_sail_vendor_command rector process' 'Run Rector through Sail'
+  _dam_add_full srcheck sail raw '_dam_sail_vendor_command rector process --dry-run' 'Preview Rector through Sail'
+  _dam_add_full sstan sail raw '_dam_sail_vendor_command phpstan analyse' 'Run PHPStan through Sail'
+  _dam_add_full stest sail raw '_dam_sail_vendor_command pest' 'Run tests through Sail'
+  _dam_add_full sqa sail raw 'spint && srcheck && sstan && spest && { [ -f package.json ] && snpm run typecheck --if-present && snpm run build --if-present || true; }' 'Full quality pipeline through Sail'
 }
 
 _dam_preset_quality() {
