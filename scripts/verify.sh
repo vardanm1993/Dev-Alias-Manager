@@ -30,12 +30,17 @@ run_behavior_test() {
     ! grep -q "^takenalias	" "$DAM_HOME/commands.db"
 
     dam preset fullstack >/dev/null
-    [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 135 ]
+    [ "$(wc -l < "$DAM_HOME/commands.db")" -ge 160 ]
+    grep -q "^sail	" "$DAM_HOME/commands.db"
+    grep -q "^sailup	" "$DAM_HOME/commands.db"
+    grep -q "^saildown	" "$DAM_HOME/commands.db"
     grep -q "^srector	" "$DAM_HOME/commands.db"
     grep -q "^spint	" "$DAM_HOME/commands.db"
     grep -q "^spest	" "$DAM_HOME/commands.db"
     grep -q "^snpm	" "$DAM_HOME/commands.db"
     grep -q "^smig	" "$DAM_HOME/commands.db"
+    grep -q "^srollback	" "$DAM_HOME/commands.db"
+    grep -q "^sstatus	" "$DAM_HOME/commands.db"
     grep -q "^sqa	" "$DAM_HOME/commands.db"
     grep -q "^sdownv	" "$DAM_HOME/commands.db"
     grep -q "^sroutes	" "$DAM_HOME/commands.db"
@@ -43,6 +48,11 @@ run_behavior_test() {
     grep -q "^sclearcache	" "$DAM_HOME/commands.db"
     grep -q "^ltree	" "$DAM_HOME/commands.db"
     grep -q "^dus	" "$DAM_HOME/commands.db"
+    grep -q "^nci	" "$DAM_HOME/commands.db"
+    grep -q "^nrun	" "$DAM_HOME/commands.db"
+    grep -q "^ntest	" "$DAM_HOME/commands.db"
+    grep -q "^gpl	" "$DAM_HOME/commands.db"
+    grep -q "^gd	" "$DAM_HOME/commands.db"
     ! grep -q "^tree	" "$DAM_HOME/commands.db"
     ! grep -q "^size	" "$DAM_HOME/commands.db"
 
@@ -79,13 +89,20 @@ run_behavior_test() {
     dam daily recommend >/tmp/dam-verify-daily-recommend.out
     grep -q "^cls|" "$DAM_HOME/daily.db"
     grep -q "^ll|" "$DAM_HOME/daily.db"
+    grep -q "^sail|" "$DAM_HOME/daily.db"
+    grep -q "^sailup|" "$DAM_HOME/daily.db"
+    grep -q "^saildown|" "$DAM_HOME/daily.db"
     grep -q "^sup|" "$DAM_HOME/daily.db"
     grep -q "^sdownv|" "$DAM_HOME/daily.db"
     grep -q "^sroutes|" "$DAM_HOME/daily.db"
+    grep -q "^srollback|" "$DAM_HOME/daily.db"
+    grep -q "^sstatus|" "$DAM_HOME/daily.db"
     grep -q "^sclearcache|" "$DAM_HOME/daily.db"
     grep -q "^spint|" "$DAM_HOME/daily.db"
     grep -q "^sqa|" "$DAM_HOME/daily.db"
     grep -q "^gst|" "$DAM_HOME/daily.db"
+    grep -q "^gpl|" "$DAM_HOME/daily.db"
+    grep -q "^gd|" "$DAM_HOME/daily.db"
   '
 }
 
@@ -100,7 +117,7 @@ custom_home="$tmp_home/custom-dam"
 HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt >/tmp/dam-verify-install.out
 grep -qF "$custom_home/dam.sh" "$tmp_home/.bashrc"
 [ -f "$custom_home/dam.sh" ]
-[ "$(wc -l < "$custom_home/commands.db")" -ge 135 ]
+[ "$(wc -l < "$custom_home/commands.db")" -ge 160 ]
 
 printf "custom|Keep me\n" > "$custom_home/daily.db"
 HOME="$tmp_home" DAM_HOME="$custom_home" SHELL=/bin/bash ./install.sh --bash --no-wizard --no-reload-prompt </dev/null >/tmp/dam-verify-reinstall-keep.out

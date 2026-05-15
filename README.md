@@ -13,7 +13,7 @@ DAM does not install Docker, PHP, Composer, Node, Laravel, Sail, or third-party 
 - Colorful icon tables for alias lists, categories, searches, and Daily Favorites.
 - Conflict checks before aliases are saved, with options to skip/delete the DAM alias, replace/shadow the existing command, or rename the DAM alias.
 - Alias packs with subtitles: Laravel, Sail, Docker, Frontend, PHP/Composer, Git, GitHub, Quality, Security, Linux, and Workflow.
-- Sail-aware commands: Laravel aliases use Sail automatically when `./vendor/bin/sail` exists.
+- Sail-aware commands: Laravel aliases use Sail automatically when `./vendor/bin/sail` exists, and the Sail pack gives you both short aliases such as `sup` and readable aliases such as `sail`, `sailup`, and `sailshell`.
 - Personal Daily Favorites: add one or many aliases by name, search first, or choose many with checkboxes.
 
 ## Preview
@@ -80,6 +80,7 @@ dam               # open interactive control center
 dam wizard        # checkbox install for alias packs
 dam list          # colorful table of installed aliases
 dam search sail   # search aliases by name, pack, command, or subtitle
+dam help sail     # show Sail aliases and examples
 dam daily choose  # checkbox picker for your Daily Favorites
 dam help          # help center
 dam check         # environment check
@@ -92,7 +93,7 @@ Daily Favorites are only the aliases you choose. DAM does not install a default 
 ```bash
 dam daily                 # open Daily menu
 dam daily choose          # choose many with checkbox UI
-dam daily recommend       # add recommended Laravel/Sail/Linux favorites
+dam daily recommend       # add recommended Laravel/Sail/Git/Linux favorites
 dam daily search route    # search before adding
 dam daily add sup art     # add one or many aliases
 dam daily remove myroutes # remove one alias
@@ -112,12 +113,12 @@ The checkbox chooser shows every installed alias with its pack subtitle, for exa
 | Pack | What It Covers | Examples |
 | --- | --- | --- |
 | Laravel | Artisan, routes, database, queues, logs, generators, Sail install | `art`, `sailinstall`, `myroutes`, `dbmigrate`, `mkc`, `mkm`, `logs` |
-| Sail | Sail lifecycle, Artisan, generators, Composer, npm, and quality tools through Sail | `sup`, `sdown`, `sart`, `smig`, `smkc`, `smkm`, `snpm`, `spest`, `spint`, `srector`, `sqa` |
-| Frontend | npm and Vite workflows | `ni`, `nrd`, `nrb`, `nrt`, `nrl`, `npreview` |
+| Sail | Sail lifecycle, Artisan, generators, Composer, npm, and quality tools through Sail | `sail`, `sailup`, `saildown`, `sailshell`, `sup`, `sart`, `smig`, `srollback`, `snpm`, `spest`, `spint`, `sqa` |
+| Frontend | npm and Vite workflows | `ni`, `nci`, `nrun`, `nrd`, `nrb`, `ntest`, `nrt`, `nrl`, `npreview` |
 | PHP / Composer | PHP and Composer workflows | `phpv`, `phpm`, `ci`, `cu`, `creq`, `caudit`, `coutdated` |
 | Quality | Pest, Pint, Rector, PHPStan | `pint`, `pest`, `rcheck`, `rfix`, `stan`, `qa` |
 | Docker | Docker Compose and cleanup | `dcomp`, `dcu`, `dcub`, `dcd`, `dcl`, `dps`, `dprune` |
-| Git | Daily Git commands | `gst`, `ga`, `gaa`, `gcm`, `gcam`, `gp`, `gpf` |
+| Git | Daily Git commands | `gst`, `ga`, `gaa`, `gpl`, `gco`, `gsw`, `gd`, `gds`, `gcm`, `gcam`, `gp`, `gpf` |
 | GitHub | GitHub CLI helpers | `ghpr`, `ghprv`, `ghprs`, `ghruns`, `ghwatch` |
 | Linux | Terminal and system helpers | `cls`, `ll`, `lh`, `ltree`, `ports`, `disk`, `dus`, `mem`, `topmem`, `myip`, `servehere` |
 | Security | Laravel project safety checks | `secenv`, `seckey`, `secaudit`, `secnpm`, `secperms` |
@@ -130,16 +131,23 @@ dam preset laravel
 dam preset sail
 dam preset docker
 dam preset fullstack
-dam preset pro        # fullstack + GitHub CLI + expanded Linux helpers
+dam preset pro        # fullstack + GitHub CLI helpers
 ```
 
 ## Laravel And Sail Examples
 
 ```bash
 sailinstall          # php artisan sail:install, or Sail artisan if Sail exists
+sail artisan migrate # ./vendor/bin/sail artisan migrate
+sail npm run dev     # ./vendor/bin/sail npm run dev
+sailup               # ./vendor/bin/sail up -d
+saildown             # ./vendor/bin/sail down
+sailshell            # ./vendor/bin/sail shell
 sup                  # ./vendor/bin/sail up -d
 sart migrate         # ./vendor/bin/sail artisan migrate
 smig                 # ./vendor/bin/sail artisan migrate
+srollback            # ./vendor/bin/sail artisan migrate:rollback
+sstatus              # ./vendor/bin/sail artisan migrate:status
 smkc UserController  # ./vendor/bin/sail artisan make:controller UserController
 smkm User            # ./vendor/bin/sail artisan make:model User
 smkmig create_posts  # ./vendor/bin/sail artisan make:migration create_posts

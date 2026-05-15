@@ -92,10 +92,8 @@ _dam_has_sail() {
 }
 
 _dam_sail_command() {
-  local subcommand="$1"
-  shift
   if [ -f "$DAM_SAIL_BIN" ]; then
-    "$DAM_SAIL_BIN" "$subcommand" "$@"
+    "$DAM_SAIL_BIN" "$@"
   else
     _dam_missing "Sail not found. Install it with: php artisan sail:install, or edit DAM_SAIL_BIN with: dam config"
   fi
@@ -713,7 +711,7 @@ _dam_daily_run() {
 
 _dam_daily_recommend() {
   local name result=0
-  local names="cls ll lh ltree ports disk mem sup sdown sdownv srestart slog sshell sps sart sroutes sabout sclearcache stinker smig smfs sseed snrd snrb spint spinttest srcheck srector sstan spest sqa gst ga gcm gp"
+  local names="cls ll lh ltree ports disk mem sail sailup saildown sup sdown sdownv srestart slog sshell sps sart sroutes sabout sclearcache stinker smig smfs sseed srollback sstatus snrd snrb spint spinttest srcheck srector sstan spest sqa gst ga gpl gd gcm gp"
 
   while IFS= read -r name; do
     [ -n "$name" ] || continue
@@ -769,9 +767,9 @@ _dam_daily_choose_dialog() {
   [ "${#opts[@]}" -gt 0 ] || { _dam_warn "No aliases installed. Run: dam wizard"; return 1; }
 
   if [ "$backend" = "dialog" ]; then
-    selected=$(dialog --stdout --title "Laravel Alias Manager" --checklist "Choose Daily Favorites from installed aliases" 24 100 16 "${opts[@]}") || return 0
+    selected=$(dialog --stdout --title "Dev Alias Manager" --checklist "Choose Daily Favorites from installed aliases" 24 100 16 "${opts[@]}") || return 0
   else
-    selected=$(whiptail --title "Laravel Alias Manager" --checklist "Choose Daily Favorites from installed aliases" 24 100 16 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
+    selected=$(whiptail --title "Dev Alias Manager" --checklist "Choose Daily Favorites from installed aliases" 24 100 16 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
   fi
 
   selected="${selected//\"/}"
@@ -941,9 +939,10 @@ _dam_help() {
       ;;
     sail)
       _dam_help_table "Laravel Sail" "Sail lifecycle, Artisan, frontend, and quality commands." \
+        "sail <cmd>|run ./vendor/bin/sail directly" "sailup|sail up -d" \
         "sup|sail up -d" "sdown|sail down" "srestart|sail restart" "sshell|sail shell" \
-        "sart <cmd>|sail artisan <cmd>" "smig|sail artisan migrate" "smfs|sail artisan migrate:fresh --seed" \
-        "scomposer <cmd>|sail composer <cmd>" "snpm <cmd>|sail npm <cmd>" "snrd|sail npm run dev" \
+        "sart <cmd>|sail artisan <cmd>" "smig|sail artisan migrate" "srollback|sail artisan migrate:rollback" \
+        "smfs|sail artisan migrate:fresh --seed" "scomposer <cmd>|sail composer <cmd>" "snpm <cmd>|sail npm <cmd>" "snrd|sail npm run dev" \
         "smkc Name|sail artisan make:controller Name" "smkm Name|sail artisan make:model Name" "smkmig name|sail artisan make:migration name" \
         "spest|sail php vendor/bin/pest" "spint|sail php vendor/bin/pint" "srector|sail php vendor/bin/rector process" \
         "sstan|sail php vendor/bin/phpstan analyse" "sqa|quality pipeline through Sail"
@@ -955,7 +954,7 @@ _dam_help() {
       ;;
     frontend|npm|vite)
       _dam_help_table "Frontend" "npm/Vite workflow." \
-        "ni|npm install" "nrd|npm run dev" "nrb|npm run build" "nrt|npm run typecheck" \
+        "ni|npm install" "nci|npm ci" "nrun <script>|npm run <script>" "nrd|npm run dev" "nrb|npm run build" "ntest|npm test" "nrt|npm run typecheck" \
         "nrl|npm run lint" "npreview|npm run preview"
       ;;
     docker)
@@ -965,8 +964,9 @@ _dam_help() {
       ;;
     git)
       _dam_help_table "Git" "Daily Git aliases." \
-        "gst|git status -sb" "ga FILE|git add" "gaa|git add -A" "gcm 'msg'|commit" \
-        "gcam 'msg'|add all and commit" "gp|push" "gpf|force-with-lease"
+        "gst|git status -sb" "ga FILE|git add" "gaa|git add -A" "gpl|git pull --ff-only" \
+        "gco BRANCH|git checkout" "gsw BRANCH|git switch" "gd|git diff" "gds|git diff --staged" \
+        "gcm 'msg'|commit" "gcam 'msg'|add all and commit" "gp|push" "gpf|force-with-lease"
       ;;
     github|gh)
       _dam_help_table "GitHub CLI" "Pull request and GitHub Actions helpers." \
@@ -1013,7 +1013,7 @@ _dam_packs() {
     "docker|Docker Compose aliases" "php|PHP and Composer aliases" "frontend|npm/Vite aliases" \
     "laravel|Artisan/Laravel workflow" "sail|Laravel Sail aliases" "quality|Pest/Pint/Rector/PHPStan" \
     "security|audit and env checks" "workflow|project start/check aliases" "fullstack|all-in-one Laravel/PHP pack" \
-    "pro|fullstack plus GitHub CLI and expanded Linux helpers"
+    "pro|fullstack plus GitHub CLI helpers"
 }
 
 _dam_preset_linux() {
@@ -1043,6 +1043,14 @@ _dam_preset_git() {
   _dam_add_full gst git system 'git status -sb' 'Git status'
   _dam_add_full ga git system 'git add' 'Git add files'
   _dam_add_full gaa git system 'git add -A' 'Git add all'
+  _dam_add_full gpl git system 'git pull --ff-only' 'Pull fast-forward only'
+  _dam_add_full gco git system 'git checkout' 'Checkout branch or path'
+  _dam_add_full gsw git system 'git switch' 'Switch branches'
+  _dam_add_full gb git system 'git branch' 'List or manage branches'
+  _dam_add_full gd git system 'git diff' 'Show unstaged diff'
+  _dam_add_full gds git system 'git diff --staged' 'Show staged diff'
+  _dam_add_full gstash git system 'git stash' 'Stash changes'
+  _dam_add_full gstashp git system 'git stash pop' 'Pop latest stash'
   _dam_add_full gcm git system 'git commit -m' 'Commit with message'
   _dam_add_full gcam git raw 'git add -A && git commit -m' 'Add all and commit with message'
   _dam_add_full gp git system 'git push' 'Push branch'
@@ -1088,9 +1096,12 @@ _dam_preset_php() {
 
 _dam_preset_frontend() {
   _dam_add_full ni frontend npm 'install' 'Install npm dependencies'
+  _dam_add_full nci frontend npm 'ci' 'Clean npm install'
+  _dam_add_full nrun frontend npm 'run' 'Run npm script'
   _dam_add_full nrd frontend npm 'run dev' 'Start frontend dev server'
   _dam_add_full vite frontend npm 'run dev' 'Start Vite dev server'
   _dam_add_full nrb frontend npm 'run build' 'Build frontend assets'
+  _dam_add_full ntest frontend npm 'test' 'Run npm tests'
   _dam_add_full nrt frontend npm 'run typecheck' 'Run typecheck'
   _dam_add_full nrl frontend npm 'run lint' 'Run lint'
   _dam_add_full nrf frontend npm 'run format' 'Run formatter'
@@ -1145,6 +1156,18 @@ _dam_preset_laravel() {
 }
 
 _dam_preset_sail() {
+  _dam_add_full sail sail raw '_dam_sail_command' 'Run Sail directly'
+  _dam_add_full sailup sail raw '_dam_sail_command up -d' 'Start Sail detached'
+  _dam_add_full sailbuild sail raw '_dam_sail_command up -d --build' 'Start Sail with build'
+  _dam_add_full saildown sail raw '_dam_sail_command down' 'Stop Sail'
+  _dam_add_full sailrestart sail raw '_dam_sail_command restart' 'Restart Sail services'
+  _dam_add_full saillogs sail raw '_dam_sail_command logs -f' 'Follow Sail logs'
+  _dam_add_full sailshell sail raw '_dam_sail_command shell' 'Open Sail shell'
+  _dam_add_full sailart sail raw '_dam_sail_command artisan' 'Run Artisan through Sail'
+  _dam_add_full sailcomposer sail raw '_dam_sail_command composer' 'Run Composer through Sail'
+  _dam_add_full sailnpm sail raw '_dam_sail_command npm' 'Run npm through Sail'
+  _dam_add_full sailtest sail raw '_dam_sail_vendor_command pest' 'Run tests through Sail'
+  _dam_add_full sailqa sail raw 'sqa' 'Run Sail quality pipeline'
   _dam_add_full sup sail raw '_dam_sail_command up -d' 'Start Sail detached'
   _dam_add_full devup sail raw '_dam_sail_command up -d' 'Start Sail'
   _dam_add_full supb sail raw '_dam_sail_command up -d --build' 'Start Sail with build'
@@ -1169,6 +1192,8 @@ _dam_preset_sail() {
   _dam_add_full smig sail raw '_dam_sail_command artisan migrate' 'Run migrations through Sail'
   _dam_add_full smfs sail raw '_dam_sail_command artisan migrate:fresh --seed' 'Fresh DB with seed through Sail'
   _dam_add_full sseed sail raw '_dam_sail_command artisan db:seed' 'Run seeders through Sail'
+  _dam_add_full srollback sail raw '_dam_sail_command artisan migrate:rollback' 'Rollback migrations through Sail'
+  _dam_add_full sstatus sail raw '_dam_sail_command artisan migrate:status' 'Migration status through Sail'
   _dam_add_full sphp sail raw '_dam_sail_command php' 'Run PHP through Sail'
   _dam_add_full scomposer sail raw '_dam_sail_command composer' 'Run Composer through Sail'
   _dam_add_full sci sail raw '_dam_sail_command composer install' 'Composer install through Sail'
@@ -1334,9 +1359,9 @@ _dam_wizard_checklist() {
   )
 
   if [ "$backend" = "dialog" ]; then
-    selected=$(dialog --stdout --title "Laravel Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 100 14 "${opts[@]}") || return 0
+    selected=$(dialog --stdout --title "Dev Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 100 14 "${opts[@]}") || return 0
   else
-    selected=$(whiptail --title "Laravel Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 100 14 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
+    selected=$(whiptail --title "Dev Alias Manager" --checklist "Choose alias packs to install. Only aliases/help are installed." 24 100 14 "${opts[@]}" 3>&1 1>&2 2>&3) || return 0
   fi
 
   selected="${selected//\"/}"

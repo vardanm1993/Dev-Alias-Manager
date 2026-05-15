@@ -25,6 +25,24 @@ For scripts, force a shell target when needed:
 
 After install, choose alias packs in the wizard and optionally pick your own Daily Favorites with checkboxes.
 
+Recommended first commands:
+
+```bash
+dam help
+dam preset fullstack
+dam search sail
+dam daily choose
+```
+
+For Laravel Sail projects, the Sail pack provides a direct wrapper and short aliases:
+
+```bash
+sail artisan migrate
+sailup
+sup
+smig
+```
+
 Fresh reinstall:
 
 ```bash
